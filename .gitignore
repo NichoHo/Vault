@@ -11,3 +11,6 @@ __pycache__/
 *.pyc
 test-results/
 playwright-report/
+.claude
+CLAUDE.md
+**/CLAUDE.md

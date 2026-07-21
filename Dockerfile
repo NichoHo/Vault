@@ -1,0 +1,13 @@
+FROM golang:1.26-alpine AS build
+WORKDIR /src
+COPY go.mod go.sum ./
+# the local `replace` target must exist for `go mod download` to resolve it
+COPY outboxkit/ ./outboxkit/
+RUN go mod download
+COPY . .
+ARG SERVICE
+RUN CGO_ENABLED=0 go build -o /out/app ./cmd/${SERVICE}
+
+FROM alpine:3.22
+COPY --from=build /out/app /app
+ENTRYPOINT ["/app"]

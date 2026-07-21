@@ -1,0 +1,493 @@
+openapi: 3.1.0
+info:
+  title: Vault API
+  version: "1.0.0"
+  description: >
+    REST surface of Vault's services: id (OIDC provider), market (listings +
+    orders), pay (escrow ledger + wallet), and assist (AI suggestions + trust).
+    In the running stack the browser reaches id through a same-origin `/idp/*`
+    proxy; the other services are called server-side by the Next.js app. Money is
+    int64 minor units (JPY). Bearer tokens are RS256 access tokens issued by id
+    and verified against its JWKS.
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:8081
+    description: id (OIDC provider)
+  - url: http://localhost:8082
+    description: market (listings + orders)
+  - url: http://localhost:8083
+    description: pay (escrow ledger + wallet)
+  - url: http://localhost:8084
+    description: assist (AI suggestions + trust)
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: RS256 access token from id's /token endpoint.
+    internalToken:
+      type: apiKey
+      in: header
+      name: X-Internal-Token
+      description: Shared secret for service-to-service escrow calls (market → pay).
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+    Listing:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        seller_id: { type: string, format: uuid }
+        category_id: { type: [integer, "null"] }
+        title: { type: string }
+        description: { type: string }
+        price_minor: { type: integer, format: int64 }
+        currency: { type: string, example: JPY }
+        status: { type: string, enum: [draft, active, reserved, sold, withdrawn] }
+        image_url: { type: string }
+        created_at: { type: string, format: date-time }
+    Order:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        listing_id: { type: string, format: uuid }
+        buyer_id: { type: string, format: uuid }
+        seller_id: { type: string, format: uuid }
+        price_minor: { type: integer, format: int64 }
+        status:
+          type: string
+          enum: [pending_payment, funded, shipped, completed, cancelled, refunded]
+        listing_title: { type: string }
+        listing_image: { type: string }
+        created_at: { type: string, format: date-time }
+        funded_at: { type: [string, "null"], format: date-time }
+        shipped_at: { type: [string, "null"], format: date-time }
+        completed_at: { type: [string, "null"], format: date-time }
+    Wallet:
+      type: object
+      properties:
+        balance_minor: { type: integer, format: int64 }
+        entries:
+          type: array
+          items:
+            type: object
+            properties:
+              amount_minor: { type: integer, format: int64 }
+              kind:
+                type: string
+                enum: [deposit, escrow_fund, escrow_release, escrow_refund, fee]
+              reference: { type: string }
+              created_at: { type: string, format: date-time }
+    Suggestion:
+      type: object
+      properties:
+        suggestion_id: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string }
+        category_slug: { type: string }
+        price_low: { type: [integer, "null"], format: int64 }
+        price_high: { type: [integer, "null"], format: int64 }
+        model: { type: string, description: "claude-opus-4-8 or 'heuristic'" }
+    RiskScore:
+      type: object
+      properties:
+        id: { type: integer }
+        subject_type: { type: string, enum: [listing, order] }
+        subject_id: { type: string }
+        score: { type: number, format: double }
+        reasons: { type: array, items: { type: string } }
+        status: { type: string, enum: [queued, approved, rejected] }
+        created_at: { type: string, format: date-time }
+
+paths:
+  # ── id (OIDC provider) ────────────────────────────────────────────────────
+  /register:
+    post:
+      servers: [{ url: "http://localhost:8081" }]
+      summary: Create an account (argon2id) and start a session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, handle]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+                handle: { type: string, pattern: "^[a-z0-9_]{3,30}$" }
+      responses:
+        "201": { description: Created; sets vault_sid cookie }
+        "409": { description: Email or handle taken, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /login:
+    post:
+      summary: Password login; may require an MFA step-up
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        "200":
+          description: Signed in, or mfa_required when TOTP is enabled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mfa_required: { type: boolean }
+        "401": { description: Invalid credentials }
+  /login/totp:
+    post:
+      summary: Complete the TOTP step-up for a pending-MFA session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [code], properties: { code: { type: string } } }
+      responses:
+        "200": { description: Signed in }
+        "401": { description: Wrong code }
+  /authorize:
+    get:
+      summary: OAuth 2.0 Authorization endpoint (Auth Code + PKCE, S256 required)
+      parameters:
+        - { name: response_type, in: query, required: true, schema: { type: string, enum: [code] } }
+        - { name: client_id, in: query, required: true, schema: { type: string } }
+        - { name: redirect_uri, in: query, required: true, schema: { type: string } }
+        - { name: scope, in: query, schema: { type: string } }
+        - { name: state, in: query, schema: { type: string } }
+        - { name: code_challenge, in: query, required: true, schema: { type: string } }
+        - { name: code_challenge_method, in: query, required: true, schema: { type: string, enum: [S256] } }
+      responses:
+        "302": { description: "Redirect to login/consent or back to the client with a code" }
+        "400": { description: Invalid client or unregistered redirect_uri }
+  /token:
+    post:
+      summary: Token endpoint (authorization_code and refresh_token grants)
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                grant_type: { type: string, enum: [authorization_code, refresh_token] }
+                code: { type: string }
+                redirect_uri: { type: string }
+                client_id: { type: string }
+                code_verifier: { type: string }
+                refresh_token: { type: string }
+      responses:
+        "200":
+          description: Tokens
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token: { type: string }
+                  id_token: { type: string }
+                  refresh_token: { type: string }
+                  token_type: { type: string, example: Bearer }
+                  expires_in: { type: integer }
+        "400": { description: "invalid_grant (bad/replayed code, wrong verifier, or refresh reuse)" }
+  /.well-known/jwks.json:
+    get:
+      summary: JWKS — RS256 public keys for verifying tokens
+      responses:
+        "200": { description: JSON Web Key Set }
+  /.well-known/openid-configuration:
+    get:
+      summary: OIDC discovery document
+      responses:
+        "200": { description: Provider metadata }
+  /mfa/enroll:
+    post:
+      summary: Begin TOTP enrollment (returns secret + otpauth URI)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Enrollment material
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret: { type: string }
+                  otpauth_uri: { type: string }
+  /mfa/activate:
+    post:
+      summary: Confirm TOTP and receive single-use recovery codes
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [code], properties: { code: { type: string } } }
+      responses:
+        "200":
+          description: MFA on; recovery codes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recovery_codes: { type: array, items: { type: string } }
+
+  # ── market (listings + orders) ────────────────────────────────────────────
+  /listings:
+    get:
+      servers: [{ url: "http://localhost:8082" }]
+      summary: List active listings (FTS + keyset pagination)
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: category, in: query, schema: { type: integer } }
+        - { name: cursor, in: query, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, default: 24, maximum: 100 } }
+      responses:
+        "200":
+          description: Page of listings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/Listing" } }
+                  next_cursor: { type: string }
+    post:
+      servers: [{ url: "http://localhost:8082" }]
+      summary: Create a listing (also writes a listing.created outbox event)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, price_minor]
+              properties:
+                title: { type: string, maxLength: 120 }
+                description: { type: string }
+                price_minor: { type: integer, format: int64, minimum: 1 }
+                category_id: { type: [integer, "null"] }
+                image_url: { type: string }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Listing" } } } }
+        "401": { description: Missing/invalid token }
+  /listings/{id}:
+    get:
+      servers: [{ url: "http://localhost:8082" }]
+      summary: Get a listing
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Listing" } } } }
+        "404": { description: Not found }
+  /orders:
+    post:
+      servers: [{ url: "http://localhost:8082" }]
+      summary: Reserve a listing and open an order (15-min reservation TTL)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [listing_id], properties: { listing_id: { type: string, format: uuid } } }
+      responses:
+        "201": { description: Order created, content: { application/json: { schema: { $ref: "#/components/schemas/Order" } } } }
+        "409": { description: Listing not available }
+    get:
+      servers: [{ url: "http://localhost:8082" }]
+      summary: List the caller's orders by role
+      security: [{ bearerAuth: [] }]
+      parameters: [{ name: role, in: query, schema: { type: string, enum: [buyer, seller] } }]
+      responses:
+        "200": { description: Orders, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Order" } } } } }
+  /orders/{id}/pay:
+    post:
+      servers: [{ url: "http://localhost:8082" }]
+      summary: Fund escrow for a pending order (buyer)
+      security: [{ bearerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200": { description: Funded, content: { application/json: { schema: { $ref: "#/components/schemas/Order" } } } }
+        "402": { description: insufficient_funds }
+  /orders/{id}/ship:
+    post:
+      servers: [{ url: "http://localhost:8082" }]
+      summary: Mark a funded order shipped (seller)
+      security: [{ bearerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200": { description: Shipped }
+        "403": { description: Only the seller may ship }
+  /orders/{id}/confirm:
+    post:
+      servers: [{ url: "http://localhost:8082" }]
+      summary: Confirm receipt; releases escrow (buyer)
+      security: [{ bearerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200": { description: Completed; escrow released }
+  /orders/{id}/cancel:
+    post:
+      servers: [{ url: "http://localhost:8082" }]
+      summary: Cancel a pending order (either party) or refund a funded order (seller)
+      security: [{ bearerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200": { description: Cancelled or refunded }
+
+  # ── pay (escrow ledger + wallet) ──────────────────────────────────────────
+  /wallet:
+    get:
+      servers: [{ url: "http://localhost:8083" }]
+      summary: The caller's balance and their side of every transfer
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Wallet, content: { application/json: { schema: { $ref: "#/components/schemas/Wallet" } } } }
+  /deposits:
+    post:
+      servers: [{ url: "http://localhost:8083" }]
+      summary: Add demo funds (self only, ≤ ¥100,000, idempotent)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idempotency_key, amount_minor]
+              properties:
+                idempotency_key: { type: string }
+                amount_minor: { type: integer, format: int64, minimum: 1, maximum: 100000 }
+      responses:
+        "200": { description: Deposited }
+        "400": { description: Amount out of range }
+  /internal/escrow/fund:
+    post:
+      servers: [{ url: "http://localhost:8083" }]
+      summary: Fund escrow for an order (internal — market only)
+      security: [{ internalToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id, buyer_id, amount_minor]
+              properties:
+                order_id: { type: string }
+                buyer_id: { type: string, format: uuid }
+                amount_minor: { type: integer, format: int64 }
+      responses:
+        "200": { description: Transfer created (idempotent on order_id) }
+        "402": { description: insufficient_funds }
+        "403": { description: Missing/wrong internal token }
+  /internal/escrow/release:
+    post:
+      servers: [{ url: "http://localhost:8083" }]
+      summary: Release escrow to the seller minus the 10% platform fee (internal)
+      security: [{ internalToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id, seller_id]
+              properties: { order_id: { type: string }, seller_id: { type: string, format: uuid } }
+      responses:
+        "200": { description: Released (idempotent) }
+        "409": { description: already_settled }
+  /internal/escrow/refund:
+    post:
+      servers: [{ url: "http://localhost:8083" }]
+      summary: Refund escrow to the buyer (internal)
+      security: [{ internalToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id, buyer_id]
+              properties: { order_id: { type: string }, buyer_id: { type: string, format: uuid } }
+      responses:
+        "200": { description: Refunded (idempotent) }
+        "409": { description: already_settled }
+
+  # ── assist (AI suggestions + trust) ───────────────────────────────────────
+  /suggest:
+    post:
+      servers: [{ url: "http://localhost:8084" }]
+      summary: Suggest a listing (VLM when configured, else heuristic) + price band
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                image_url: { type: string }
+                title_hint: { type: string, maxLength: 120 }
+      responses:
+        "200": { description: Suggestion, content: { application/json: { schema: { $ref: "#/components/schemas/Suggestion" } } } }
+        "400": { description: Provide an image_url or a title_hint }
+  /suggestions/{id}/outcome:
+    post:
+      servers: [{ url: "http://localhost:8084" }]
+      summary: Record which suggested fields the human kept (acceptance metric)
+      security: [{ bearerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                accepted_fields: { type: array, items: { type: string, enum: [title, description, category, price] } }
+                listing_id: { type: [string, "null"], format: uuid }
+      responses:
+        "200": { description: Recorded }
+  /admin/metrics:
+    get:
+      servers: [{ url: "http://localhost:8084" }]
+      summary: Suggestion acceptance rates + open trust-queue count (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Metrics }
+        "403": { description: Admin only }
+  /admin/trust:
+    get:
+      servers: [{ url: "http://localhost:8084" }]
+      summary: The trust review queue (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Risk scores, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/RiskScore" } } } } }
+  /admin/trust/{id}/resolve:
+    post:
+      servers: [{ url: "http://localhost:8084" }]
+      summary: Approve or reject a queued risk score (admin)
+      security: [{ bearerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [action], properties: { action: { type: string, enum: [approve, reject] } } }
+      responses:
+        "200": { description: Resolved }
+        "409": { description: Not queued }

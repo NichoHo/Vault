@@ -1,0 +1,14 @@
+# Keep structural validation strict (the spec must be valid OpenAPI 3.1), but
+# relax the opinionated doc-completeness rules that don't matter for a project
+# reference spec (per-operation operationId/security boilerplate, localhost
+# servers, 4xx coverage, SPDX license id).
+extends:
+  - recommended
+rules:
+  struct: error
+  operation-operationId: off
+  security-defined: off
+  operation-4xx-response: off
+  operation-2xx-response: warn
+  no-server-example.com: off
+  info-license-strict: off

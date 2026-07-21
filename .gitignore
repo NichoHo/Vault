@@ -1,0 +1,13 @@
+node_modules/
+.next/
+*.env
+.env*
+!.env.example
+.terraform/
+*.tfstate*
+bin/
+web/next-env.d.ts
+__pycache__/
+*.pyc
+test-results/
+playwright-report/

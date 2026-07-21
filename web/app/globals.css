@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+/* Ishidatami design tokens (spec §6). No dark mode by design. */
+@theme {
+  --color-ink: #16161a;
+  --color-paper: #faf8f5;
+  --color-surface: #ffffff;
+  --color-torii: #d9381e;
+  --color-moss: #2e7d5b;
+  --color-kohaku: #c98a0b;
+  --color-indigo: #31456a;
+  --color-sumi-60: #5e5e66;
+  --color-sumi-40: #94949e;
+  --color-sumi-20: #dedcd6;
+  --color-sumi-10: #efece7;
+  --font-sans: var(--font-inter), var(--font-noto), system-ui, sans-serif;
+
+  /* 4px grid radii (spec §6) */
+  --radius-card: 8px;
+  --radius-control: 6px;
+
+  /* the single elevation, reserved for modals/toasts (borders elsewhere) */
+  --shadow-elevated: 0 10px 30px -12px rgb(22 22 26 / 0.25);
+}
+
+@layer base {
+  html {
+    color-scheme: light; /* no dark mode by design (spec §6) */
+  }
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* indigo is the "security / focus" hue — use it for text selection too */
+  ::selection {
+    background: color-mix(in srgb, var(--color-indigo) 18%, transparent);
+  }
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@utility money {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* a hairline seam that echoes the ishidatami (paving-stone) motif */
+@utility rule-torii {
+  border-top: 2px solid var(--color-torii);
+}
+
+/* Keyboard focus ring for every interactive element. !important so it beats the
+   `outline-none` utility on inputs (v4 utilities tie on specificity, win on
+   source order). Indigo is the focus hue (spec §6); outline (not box-shadow) so
+   it survives overflow-hidden and follows each element's own border-radius. */
+:focus-visible {
+  outline: 2px solid var(--color-indigo) !important;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

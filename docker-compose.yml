@@ -1,0 +1,141 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: vault
+      POSTGRES_PASSWORD: vault
+      POSTGRES_DB: vault
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vault"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+  redpanda:
+    image: redpandadata/redpanda:v24.2.7
+    command:
+      - redpanda start
+      - --smp 1
+      - --overprovisioned
+      - --node-id 0
+      - --kafka-addr PLAINTEXT://0.0.0.0:9092
+      - --advertise-kafka-addr PLAINTEXT://redpanda:9092
+    ports:
+      - "9092:9092"
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health | grep -q 'Healthy:.*true'"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  id:
+    build:
+      context: .
+      args: { SERVICE: id }
+    ports:
+      - "8081:8081"
+    environment:
+      DATABASE_URL: postgres://vault:vault@db:5432/vault
+      ID_ISSUER: http://localhost:8081
+      WEB_URL: http://localhost:3000
+    depends_on:
+      db:
+        condition: service_healthy
+
+  market:
+    build:
+      context: .
+      args: { SERVICE: market }
+    ports:
+      - "8082:8082"
+    environment:
+      DATABASE_URL: postgres://vault:vault@db:5432/vault
+      ID_JWKS_URL: http://id:8081/.well-known/jwks.json
+      ID_ISSUER: http://localhost:8081
+      PAY_URL: http://pay:8083
+      PAY_INTERNAL_TOKEN: dev-internal-token
+      AUTO_RELEASE_AFTER: 72h
+      REDPANDA_BROKERS: redpanda:9092
+    depends_on:
+      db:
+        condition: service_healthy
+      id:
+        condition: service_started
+      pay:
+        condition: service_started
+      redpanda:
+        condition: service_healthy
+
+  pay:
+    build:
+      context: .
+      args: { SERVICE: pay }
+    ports:
+      - "8083:8083"
+    environment:
+      DATABASE_URL: postgres://vault:vault@db:5432/vault
+      ID_JWKS_URL: http://id:8081/.well-known/jwks.json
+      ID_ISSUER: http://localhost:8081
+      PAY_INTERNAL_TOKEN: dev-internal-token
+      REDPANDA_BROKERS: redpanda:9092
+    depends_on:
+      db:
+        condition: service_healthy
+      id:
+        condition: service_started
+      redpanda:
+        condition: service_healthy
+
+  assist:
+    build: ./assist
+    ports:
+      - "8084:8084"
+    environment:
+      DATABASE_URL: postgres://vault:vault@db:5432/vault
+      ID_JWKS_URL: http://id:8081/.well-known/jwks.json
+      ID_ISSUER: http://localhost:8081
+      ADMIN_EMAILS: alice@vault.test
+      REDPANDA_BROKERS: redpanda:9092
+      # ANTHROPIC_API_KEY: set in the environment to enable real VLM suggestions
+    depends_on:
+      db:
+        condition: service_healthy
+      id:
+        condition: service_started
+      redpanda:
+        condition: service_healthy
+
+  web:
+    build: ./web
+    ports:
+      - "3000:3000"
+    environment:
+      ID_URL: http://id:8081
+      MARKET_URL: http://market:8082
+      PAY_URL: http://pay:8083
+      ASSIST_URL: http://assist:8084
+      ADMIN_EMAILS: alice@vault.test
+      WEB_ORIGIN: http://localhost:3000
+    depends_on:
+      - id
+      - market
+      - pay
+      - assist
+
+  seed:
+    build:
+      context: .
+      args: { SERVICE: seed }
+    profiles: ["seed"]
+    environment:
+      DATABASE_URL: postgres://vault:vault@db:5432/vault
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  dbdata:

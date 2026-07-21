@@ -1,0 +1,229 @@
+package id
+
+import (
+	"context"
+	"crypto/rand"
+	"encoding/base64"
+	"encoding/json"
+	"errors"
+	"log/slog"
+	"net/http"
+	"regexp"
+	"strings"
+	"time"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
+
+	"vault/internal/httpx"
+)
+
+const (
+	sessionCookie = "vault_sid"
+	sessionTTL    = 30 * 24 * time.Hour
+	codeTTL       = 5 * time.Minute
+	tokenTTL      = 15 * time.Minute
+)
+
+type Server struct {
+	pool   *pgxpool.Pool
+	signer *Signer
+	issuer string
+	webURL string
+}
+
+func NewServer(pool *pgxpool.Pool, signer *Signer, issuer, webURL string) http.Handler {
+	s := &Server{pool: pool, signer: signer, issuer: issuer, webURL: webURL}
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
+		httpx.JSON(w, 200, map[string]bool{"ok": true})
+	})
+	mux.HandleFunc("POST /register", s.handleRegister)
+	mux.HandleFunc("POST /login", s.handleLogin)
+	mux.HandleFunc("POST /logout", s.handleLogout)
+	mux.HandleFunc("GET /me", s.handleMe)
+	mux.HandleFunc("GET /authorize", s.handleAuthorize)
+	mux.HandleFunc("POST /consent", s.handleConsent)
+	mux.HandleFunc("POST /token", s.handleToken)
+	mux.HandleFunc("GET /.well-known/openid-configuration", s.handleDiscovery)
+	mux.HandleFunc("GET /.well-known/jwks.json", s.handleJWKS)
+	s.mfaRoutes(mux)
+	return mux
+}
+
+func (s *Server) audit(ctx context.Context, actor, action string, meta map[string]any) {
+	b, _ := json.Marshal(meta)
+	if _, err := s.pool.Exec(ctx,
+		`INSERT INTO id.audit_events (actor, action, meta) VALUES ($1, $2, $3)`, actor, action, b); err != nil {
+		slog.Error("audit write failed", "action", action, "err", err)
+	}
+}
+
+func randToken(n int) string {
+	b := make([]byte, n)
+	rand.Read(b)
+	return base64.RawURLEncoding.EncodeToString(b)
+}
+
+func (s *Server) newSession(w http.ResponseWriter, r *http.Request, userID string, pendingMFA bool) error {
+	sid := randToken(32)
+	if _, err := s.pool.Exec(r.Context(),
+		`INSERT INTO id.sessions (id, user_id, expires_at, pending_mfa) VALUES ($1, $2, $3, $4)`,
+		sid, userID, time.Now().Add(sessionTTL), pendingMFA); err != nil {
+		return err
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name: sessionCookie, Value: sid, Path: "/", HttpOnly: true,
+		// Secure whenever the browser-facing origin is HTTPS (prod); stays off
+		// for http://localhost dev so the cookie is still sent.
+		Secure:   strings.HasPrefix(s.webURL, "https://"),
+		SameSite: http.SameSiteLaxMode, MaxAge: int(sessionTTL.Seconds()),
+	})
+	return nil
+}
+
+type sessionUser struct {
+	ID     string `json:"id"`
+	Email  string `json:"email"`
+	Handle string `json:"handle"`
+}
+
+func (s *Server) sessionUser(r *http.Request) (sessionUser, bool) {
+	var u sessionUser
+	c, err := r.Cookie(sessionCookie)
+	if err != nil {
+		return u, false
+	}
+	err = s.pool.QueryRow(r.Context(),
+		`SELECT u.id, u.email, u.handle FROM id.sessions s JOIN id.users u ON u.id = s.user_id
+		 WHERE s.id = $1 AND s.expires_at > now() AND NOT s.pending_mfa`, c.Value).
+		Scan(&u.ID, &u.Email, &u.Handle)
+	return u, err == nil
+}
+
+var handleRe = regexp.MustCompile(`^[a-z0-9_]{3,30}$`)
+
+func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
+	var in struct{ Email, Password, Handle string }
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		httpx.Error(w, 400, "bad json")
+		return
+	}
+	in.Email = strings.ToLower(strings.TrimSpace(in.Email))
+	in.Handle = strings.ToLower(strings.TrimSpace(in.Handle))
+	switch {
+	case !strings.Contains(in.Email, "@") || len(in.Email) > 254:
+		httpx.Error(w, 400, "invalid email")
+		return
+	case len(in.Password) < 8:
+		httpx.Error(w, 400, "password must be at least 8 characters")
+		return
+	case !handleRe.MatchString(in.Handle):
+		httpx.Error(w, 400, "handle must be 3-30 chars of a-z, 0-9, _")
+		return
+	}
+	hash, err := HashPassword(in.Password)
+	if err != nil {
+		httpx.Error(w, 500, "hash failed")
+		return
+	}
+	tx, err := s.pool.Begin(r.Context())
+	if err != nil {
+		httpx.Error(w, 500, "db")
+		return
+	}
+	defer tx.Rollback(r.Context())
+	var userID string
+	err = tx.QueryRow(r.Context(),
+		`INSERT INTO id.users (email, handle) VALUES ($1, $2) RETURNING id`,
+		in.Email, in.Handle).Scan(&userID)
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+		httpx.Error(w, 409, "email or handle already taken")
+		return
+	}
+	if err != nil {
+		httpx.Error(w, 500, "db")
+		return
+	}
+	if _, err := tx.Exec(r.Context(),
+		`INSERT INTO id.credentials (user_id, password_hash) VALUES ($1, $2)`, userID, hash); err != nil {
+		httpx.Error(w, 500, "db")
+		return
+	}
+	if err := tx.Commit(r.Context()); err != nil {
+		httpx.Error(w, 500, "db")
+		return
+	}
+	if err := s.newSession(w, r, userID, false); err != nil {
+		httpx.Error(w, 500, "session")
+		return
+	}
+	s.audit(r.Context(), userID, "user.register", map[string]any{"email": in.Email})
+	httpx.JSON(w, 201, sessionUser{ID: userID, Email: in.Email, Handle: in.Handle})
+}
+
+func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
+	var in struct{ Email, Password string }
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		httpx.Error(w, 400, "bad json")
+		return
+	}
+	in.Email = strings.ToLower(strings.TrimSpace(in.Email))
+	var u sessionUser
+	var hash string
+	err := s.pool.QueryRow(r.Context(),
+		`SELECT u.id, u.email, u.handle, c.password_hash
+		 FROM id.users u JOIN id.credentials c ON c.user_id = u.id
+		 WHERE u.email = $1`, in.Email).Scan(&u.ID, &u.Email, &u.Handle, &hash)
+	if errors.Is(err, pgx.ErrNoRows) {
+		// burn time so absent accounts cost the same as wrong passwords
+		HashPassword(in.Password)
+		s.audit(r.Context(), in.Email, "login.fail", map[string]any{"reason": "no user"})
+		httpx.Error(w, 401, "invalid credentials")
+		return
+	}
+	if err != nil {
+		httpx.Error(w, 500, "db")
+		return
+	}
+	if ok, _ := VerifyPassword(in.Password, hash); !ok {
+		s.audit(r.Context(), u.ID, "login.fail", map[string]any{"reason": "bad password"})
+		httpx.Error(w, 401, "invalid credentials")
+		return
+	}
+	if s.mfaEnabled(r, u.ID) {
+		// password accepted, but the session stays pending until the TOTP step
+		if err := s.newSession(w, r, u.ID, true); err != nil {
+			httpx.Error(w, 500, "session")
+			return
+		}
+		s.audit(r.Context(), u.ID, "login.password_ok_mfa_pending", nil)
+		httpx.JSON(w, 200, map[string]any{"mfa_required": true})
+		return
+	}
+	if err := s.newSession(w, r, u.ID, false); err != nil {
+		httpx.Error(w, 500, "session")
+		return
+	}
+	s.audit(r.Context(), u.ID, "login.success", nil)
+	httpx.JSON(w, 200, u)
+}
+
+func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
+	if c, err := r.Cookie(sessionCookie); err == nil {
+		s.pool.Exec(r.Context(), `DELETE FROM id.sessions WHERE id = $1`, c.Value)
+	}
+	http.SetCookie(w, &http.Cookie{Name: sessionCookie, Value: "", Path: "/", MaxAge: -1})
+	w.WriteHeader(204)
+}
+
+func (s *Server) handleMe(w http.ResponseWriter, r *http.Request) {
+	u, ok := s.sessionUser(r)
+	if !ok {
+		httpx.Error(w, 401, "not signed in")
+		return
+	}
+	httpx.JSON(w, 200, u)
+}

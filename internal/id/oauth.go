@@ -247,7 +247,7 @@ func (s *Server) handleRefreshGrant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if usedAt != nil {
-		// reuse detected — burn the whole family
+		// reuse detected: burn the whole family
 		s.pool.Exec(r.Context(),
 			`UPDATE id.refresh_tokens SET revoked_at = now() WHERE family_id = $1 AND revoked_at IS NULL`,
 			familyID)

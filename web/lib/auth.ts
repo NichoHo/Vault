@@ -7,7 +7,7 @@ export async function getToken(): Promise<string | null> {
   return c.get("vault_token")?.value ?? null;
 }
 
-// Decodes the access token payload for UI purposes only — no signature check
+// Decodes the access token payload for UI purposes only, with no signature check
 // here. The market service verifies signatures against the IdP's JWKS; the
 // storefront never trusts this value for anything but display.
 export async function getUser(): Promise<User | null> {

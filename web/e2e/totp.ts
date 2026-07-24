@@ -1,6 +1,6 @@
 import { createHmac } from "crypto";
 
-// RFC 6238 TOTP (HMAC-SHA1, 30s step, 6 digits) — mirrors internal/id/totp.go,
+// RFC 6238 TOTP (HMAC-SHA1, 30s step, 6 digits). Mirrors internal/id/totp.go,
 // so the e2e can produce the same code the IdP expects for the MFA step.
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 

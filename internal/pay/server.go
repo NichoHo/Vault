@@ -18,7 +18,7 @@ type Server struct {
 	internalToken string
 }
 
-// depositCap: demo money — self-service top-ups are capped per call.
+// depositCap: demo money, so self-service top-ups are capped per call.
 const depositCap = 100_000
 
 func NewServer(pool *pgxpool.Pool, auth *authn.Verifier, internalToken string) http.Handler {

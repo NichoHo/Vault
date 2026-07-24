@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Vault — security group (default VPC)
+# Vault: security group (default VPC)
 # ---------------------------------------------------------------------------
 
 resource "aws_security_group" "vault" {

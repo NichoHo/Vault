@@ -55,7 +55,7 @@ func (s *Signer) Sign(c Claims) (string, error) {
 	return input + "." + b64(sig), nil
 }
 
-// VerifyJWT checks structure, alg (RS256 only — "none" and friends rejected),
+// VerifyJWT checks structure, alg (RS256 only, so "none" and friends are rejected),
 // signature against the kid's key, expiry, issuer, and audience.
 func VerifyJWT(token string, keys map[string]*rsa.PublicKey, iss, aud string, now time.Time) (Claims, error) {
 	var c Claims

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import StatusBadge from "@/components/StatusBadge";
-import { fetchOrders, yen } from "@/lib/api";
+import ServiceUnavailable from "@/components/ServiceUnavailable";
+import { fetchOrders, yen, type Order } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 
 export default async function OrdersPage({
@@ -13,13 +14,20 @@ export default async function OrdersPage({
   if (!token) redirect("/auth/start?next=/orders");
   const sp = await searchParams;
   const role = sp.role === "seller" ? "seller" : "buyer";
-  const orders = await fetchOrders(token, role);
+  // "no orders" and "orders service is down" must not look identical
+  let orders: Order[] = [];
+  let unreachable = false;
+  try {
+    orders = await fetchOrders(token, role);
+  } catch {
+    unreachable = true;
+  }
 
   const tab = (r: string, label: string) => (
     <Link
       href={`/orders?role=${r}`}
       className={`rounded-[6px] px-3 py-1.5 text-sm ${
-        role === r ? "bg-indigo text-white" : "border border-sumi-20"
+        role === r ? "bg-indigo text-on-solid" : "border border-sumi-20"
       }`}
     >
       {label}
@@ -33,7 +41,12 @@ export default async function OrdersPage({
         {tab("buyer", "Purchases")}
         {tab("seller", "Sales")}
       </div>
-      {orders.length === 0 ? (
+      {unreachable ? (
+        <ServiceUnavailable
+          service="orders"
+          detail="Your orders can’t be loaded right now. It doesn’t mean you have none."
+        />
+      ) : orders.length === 0 ? (
         <p className="text-sm text-sumi-60">
           Nothing here yet. {role === "buyer" ? "Go buy something nice." : "List something for sale."}
         </p>

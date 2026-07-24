@@ -1,4 +1,4 @@
-# Vault — Terraform Deployment
+# Vault: Terraform Deployment
 
 Single EC2 instance running the full Vault stack via Docker Compose.
 
@@ -27,10 +27,10 @@ A `t3.small` instance in `us-east-1` with a 30 GB gp3 volume runs **~$15/month**
 
 > **This configuration is designed for demo / development use.**
 >
-> - SSH (port 22) is open to `0.0.0.0/0` — restrict to your IP in production.
-> - No TLS termination — add an ALB + ACM certificate for HTTPS.
-> - No database backups or multi-AZ — swap in RDS if you need durability.
-> - Secrets are not managed — use AWS Secrets Manager or SSM Parameter Store in production.
+> - SSH (port 22) is open to `0.0.0.0/0`. Restrict it to your IP in production.
+> - No TLS termination. Add an ALB + ACM certificate for HTTPS.
+> - No database backups or multi-AZ. Swap in RDS if you need durability.
+> - Secrets are not managed. Use AWS Secrets Manager or SSM Parameter Store in production.
 
 ## Teardown
 

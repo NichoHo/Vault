@@ -57,7 +57,7 @@ export async function createListingAction(formData: FormData) {
   const listing = (await resp.json()) as { id: string };
 
   // co-creation metric: report which suggested fields survived unedited.
-  // awaited — redirect() aborts pending work, a fire-and-forget call is lost
+  // awaited, because redirect() aborts pending work and a fire-and-forget call is lost
   const suggestionID = String(formData.get("suggestion_id") ?? "");
   const accepted = String(formData.get("accepted_fields") ?? "");
   if (suggestionID) {

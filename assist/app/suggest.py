@@ -1,6 +1,6 @@
 """Listing suggestions: price band from comparables + optional VLM titles.
 
-AI proposes, the human decides — every field is editable in the UI and
+AI proposes, the human decides. Every field is editable in the UI and
 acceptance is tracked per field (the co-creation metric).
 """
 

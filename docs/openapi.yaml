@@ -204,7 +204,7 @@ paths:
         "400": { description: "invalid_grant (bad/replayed code, wrong verifier, or refresh reuse)" }
   /.well-known/jwks.json:
     get:
-      summary: JWKS — RS256 public keys for verifying tokens
+      summary: JWKS, the RS256 public keys for verifying tokens
       responses:
         "200": { description: JSON Web Key Set }
   /.well-known/openid-configuration:
@@ -377,7 +377,7 @@ paths:
   /internal/escrow/fund:
     post:
       servers: [{ url: "http://localhost:8083" }]
-      summary: Fund escrow for an order (internal — market only)
+      summary: Fund escrow for an order (internal, market only)
       security: [{ internalToken: [] }]
       requestBody:
         required: true

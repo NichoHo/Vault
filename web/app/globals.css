@@ -1,62 +1,120 @@
 @import "tailwindcss";
 
-/* Ishidatami design tokens (spec §6). No dark mode by design. */
+/* Dark mode is driven by <html data-theme>, not the OS media query, so the
+   header toggle can override the system preference. Redefining the `dark:`
+   variant keeps utilities like `dark:hidden` in sync with it. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ============================================================================
+   Vault design system: "Slate" (v2). Supersedes "Ishidatami".
+   Sleek, high-trust, light + dark. Depth comes from a neutral surface scale +
+   soft layered elevation + glass on sticky chrome, not heavy shadows.
+   Legacy Ishidatami token names are aliased at the bottom so the ~17 pages not
+   yet restyled inherit the new palette without a repo-wide rename.
+   ============================================================================ */
+
 @theme {
-  --color-ink: #16161a;
-  --color-paper: #faf8f5;
-  --color-surface: #ffffff;
-  --color-torii: #d9381e;
-  --color-moss: #2e7d5b;
-  --color-kohaku: #c98a0b;
-  --color-indigo: #31456a;
-  --color-sumi-60: #5e5e66;
-  --color-sumi-40: #94949e;
-  --color-sumi-20: #dedcd6;
-  --color-sumi-10: #efece7;
+  /* ---- Neutral surface scale (cool near-neutral, reads clean/premium) ---- */
+  --color-canvas: #f6f7f9; /* app background */
+  --color-surface: #ffffff; /* cards, primary panels */
+  --color-surface-2: #fbfcfd; /* subtly raised / alternate rows */
+
+  /* ---- Ink & text ramp (all AA on surface/canvas) ------------------------ */
+  --color-ink: #0f1524; /* primary text */
+  --color-ink-2: #38414f; /* secondary text */
+  --color-muted: #5b6474; /* tertiary / captions (>=4.5:1 on white) */
+  --color-faint: #9096a2; /* placeholder / disabled */
+
+  /* ---- Lines & fills ----------------------------------------------------- */
+  --color-line: #e6e8ee; /* hairline borders */
+  --color-line-strong: #d3d7df; /* hover borders, dividers */
+  --color-fill: #eef0f4; /* chip bg, skeleton, code, subtle fill */
+
+  /* ---- Accent (the single trust hue): links, primary CTA, focus, security  */
+  --color-accent: #4f46e5;
+  --color-accent-strong: #4338ca; /* hover / pressed */
+  --color-accent-tint: #eef0fe; /* accent-tinted surface */
+  /* Foreground for ANY solid accent/semantic fill (buttons, badges). Exists so
+     dark mode can lighten the solids for readable link text without breaking
+     white-on-color: in dark this flips to near-black. */
+  --color-on-solid: #ffffff;
+
+  /* ---- Semantics (values kept dark enough for white-on-color badges) ----- */
+  --color-success: #157a53; /* escrow released / paid */
+  --color-success-tint: #e6f5ee;
+  --color-warning: #b45309; /* pending / warnings */
+  --color-warning-tint: #fbeede;
+  --color-danger: #c81e14; /* errors / destructive (AA on white and on -tint) */
+  --color-danger-tint: #fdecec;
+
+  /* ---- Type -------------------------------------------------------------- */
   --font-sans: var(--font-inter), var(--font-noto), system-ui, sans-serif;
 
-  /* 4px grid radii (spec §6) */
-  --radius-card: 8px;
-  --radius-control: 6px;
+  /* ---- Radii (softer, modern; custom names, safe to enlarge) ------------- */
+  --radius-control: 10px;
+  --radius-card: 14px;
 
-  /* the single elevation, reserved for modals/toasts (borders elsewhere) */
-  --shadow-elevated: 0 10px 30px -12px rgb(22 22 26 / 0.25);
+  /* ---- Elevation: soft, layered (overrides Tailwind's default shadows) ---- */
+  --shadow-sm: 0 1px 2px rgb(15 21 36 / 0.04), 0 1px 3px rgb(15 21 36 / 0.06);
+  --shadow-md: 0 2px 6px -1px rgb(15 21 36 / 0.05), 0 10px 20px -6px rgb(15 21 36 / 0.1);
+  --shadow-lg: 0 4px 10px -2px rgb(15 21 36 / 0.06), 0 24px 40px -12px rgb(15 21 36 / 0.16);
+  --shadow-elevated: var(--shadow-lg); /* legacy name (modals/toasts) */
 }
 
 @layer base {
   html {
-    color-scheme: light; /* no dark mode by design (spec §6) */
+    color-scheme: light; /* flipped to dark by the data-theme block below */
   }
   body {
-    background: var(--color-paper);
+    background: var(--color-canvas);
     color: var(--color-ink);
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
-  /* indigo is the "security / focus" hue — use it for text selection too */
+  /* accent is the focus/selection hue */
   ::selection {
-    background: color-mix(in srgb, var(--color-indigo) 18%, transparent);
+    background: color-mix(in srgb, var(--color-accent) 20%, transparent);
   }
-  a {
+  /* interactive elements: kill the tap delay / double-tap-zoom and grey flash */
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [role="button"] {
+    touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
 }
 
+/* tabular numerals so money lines up across rows */
 @utility money {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
 
-/* a hairline seam that echoes the ishidatami (paving-stone) motif */
-@utility rule-torii {
-  border-top: 2px solid var(--color-torii);
+/* Frosted glass for sticky chrome. Translucent surface + blur so it reads as
+   floating over scrolled content; the /72 alpha is a graceful fallback where
+   backdrop-filter is unsupported. */
+@utility glass {
+  background: color-mix(in srgb, var(--color-surface) 72%, transparent);
+  backdrop-filter: blur(14px) saturate(1.5);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
 }
 
-/* Keyboard focus ring for every interactive element. !important so it beats the
-   `outline-none` utility on inputs (v4 utilities tie on specificity, win on
-   source order). Indigo is the focus hue (spec §6); outline (not box-shadow) so
-   it survives overflow-hidden and follows each element's own border-radius. */
+/* Soft accent-tinted wash for hero / feature surfaces (depth without a shadow). */
+@utility wash-accent {
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--color-accent) 9%, transparent) 0%, transparent 55%),
+    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--color-success) 7%, transparent) 0%, transparent 50%),
+    var(--color-surface);
+}
+
+/* Keyboard focus ring. !important beats v4's `outline-none` on inputs (utilities
+   tie on specificity, win on source order). Outline (not box-shadow) so it
+   survives overflow-hidden and follows each element's own border-radius. */
 :focus-visible {
-  outline: 2px solid var(--color-indigo) !important;
+  outline: 2px solid var(--color-accent) !important;
   outline-offset: 2px;
 }
 
@@ -69,4 +127,72 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ---- Legacy Ishidatami aliases -------------------------------------------
+   Pages not yet restyled (search, orders, wallet, checkout, auth/*, admin,
+   sell, StatusBadge, OrderTimeline, IdCard) still reference these names.
+   Mapped onto the new palette so they inherit the restyle without a rename.
+   New marketplace code uses the semantic names above. */
+@theme {
+  --color-paper: var(--color-canvas);
+  --color-torii: var(--color-accent);
+  --color-indigo: var(--color-accent);
+  --color-moss: var(--color-success);
+  --color-kohaku: var(--color-warning);
+  --color-sumi-60: var(--color-muted);
+  --color-sumi-40: var(--color-faint);
+  --color-sumi-20: var(--color-line);
+  --color-sumi-10: var(--color-fill);
+}
+
+/* legacy hero seam, remapped to the accent hue (kept in case any page uses it) */
+@utility rule-torii {
+  border-top: 2px solid var(--color-accent);
+}
+
+/* ---- Dark theme --------------------------------------------------------
+   Applied by attribute, not media query: the inline script in layout.tsx sets
+   data-theme from localStorage (falling back to the OS preference) before
+   first paint, and ThemeToggle rewrites it on click. One selector, so the
+   toggle and the system default can't drift apart.
+
+   Only the base tokens are overridden. The legacy aliases above resolve
+   through var(), so they follow automatically. Components need no `dark:`
+   variants because they all reference semantic tokens.
+
+   The solids (accent/success/warning/danger) get LIGHTER here so link and
+   status text clears 4.5:1 on a dark canvas; `on-solid` flips to near-black
+   so buttons and badges stay legible. Shadows go darker than the canvas,
+   since a light shadow on a dark surface reads as fog, not depth. */
+:root[data-theme="dark"] {
+  color-scheme: dark; /* native scrollbars, form controls, autofill */
+  --color-canvas: #0b0e14;
+  --color-surface: #131823;
+  --color-surface-2: #19202d;
+
+  --color-ink: #e8ecf3;
+  --color-ink-2: #c0c8d6;
+  --color-muted: #96a0b2;
+  --color-faint: #7d8698;
+
+  --color-line: #242b3a;
+  --color-line-strong: #333c4f;
+  --color-fill: #1a2130;
+
+  --color-accent: #8b93f8;
+  --color-accent-strong: #a9b0fc;
+  --color-accent-tint: #1b2040;
+  --color-on-solid: #0b0e14;
+
+  --color-success: #35c88d;
+  --color-success-tint: #0e2a20;
+  --color-warning: #e0a33a;
+  --color-warning-tint: #2c2110;
+  --color-danger: #f27b72;
+  --color-danger-tint: #2e1719;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 2px 6px -1px rgb(0 0 0 / 0.4), 0 10px 20px -6px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 4px 10px -2px rgb(0 0 0 / 0.45), 0 24px 40px -12px rgb(0 0 0 / 0.6);
 }

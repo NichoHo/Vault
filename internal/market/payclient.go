@@ -1,6 +1,6 @@
 package market
 
-// ponytail: one struct with three POSTs — no interface, no gRPC. Market is the
+// ponytail: one struct with three POSTs, no interface, no gRPC. Market is the
 // only caller and the payment path must be synchronous anyway (the buyer waits).
 
 import (

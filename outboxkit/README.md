@@ -17,12 +17,12 @@ at-least-once delivery  +  idempotent consumer  =  exactly-once effects
 
 If a service writes a row **and** publishes an event in two separate steps, a
 crash between them either loses the event or emits one for a change that rolled
-back — the *dual-write problem*. Writing the event to an **outbox table in the
+back. This is the *dual-write problem*. Writing the event to an **outbox table in the
 same transaction** as the state change makes the two atomic. A relay then
 publishes committed outbox rows out-of-band. outboxkit is that relay plus the
 consumer-side dedup that makes redelivery safe.
 
-The core package has **no message-broker dependency** — it talks to a
+The core package has **no message-broker dependency**. It talks to a
 `Publisher` interface, so it's trivially testable with a fake and you bring your
 own sink. A `kafkapub` subpackage provides a Kafka/Redpanda publisher.
 
@@ -32,10 +32,10 @@ own sink. A `kafkapub` subpackage provides a Kafka/Redpanda publisher.
 go get github.com/NichoHo/outboxkit
 ```
 
-## Producer side — the relay
+## Producer side: the relay
 
 Your service writes to `<schema>.outbox` in the same transaction as its state
-change (outboxkit does not prescribe how — it's your `INSERT`). The table needs
+change (outboxkit does not prescribe how; it's your `INSERT`). The table needs
 at least:
 
 ```sql
@@ -59,12 +59,12 @@ go relay.Run(ctx) // drains until ctx is cancelled
 ```
 
 The relay `SELECT ... WHERE published_at IS NULL ... FOR UPDATE SKIP LOCKED`,
-publishes the batch, then marks the rows published — all in one transaction. A
+publishes the batch, then marks the rows published, all in one transaction. A
 crash after publishing but before commit re-publishes those rows on the next
 drain. `SKIP LOCKED` lets you run multiple relay instances without them
 blocking each other.
 
-## Consumer side — idempotent effects
+## Consumer side: idempotent effects
 
 Delivery is at-least-once, so consumers must be idempotent. Wrap your side
 effect in `Guard`, which records the event id in `<schema>.consumed_events` in
@@ -85,7 +85,7 @@ applied, err := idem.Guard(ctx, event.ID, func(tx pgx.Tx) error {
     _, err := tx.Exec(ctx, `UPDATE app.inventory SET reserved = reserved + 1 WHERE sku = $1`, sku)
     return err
 })
-// applied == false means this event was already processed — a safe no-op.
+// applied == false means this event was already processed, so it's a safe no-op.
 ```
 
 If the effect returns an error, the dedup marker rolls back with it, so a retry
@@ -106,7 +106,7 @@ TEST_DATABASE_URL=postgres://user:pass@localhost:5432/db go test -race ./...
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
 
 Extracted from [Vault](https://github.com/NichoHo/vault), a marketplace with a
 self-built OIDC identity provider and escrow payments.

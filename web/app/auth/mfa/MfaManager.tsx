@@ -42,7 +42,7 @@ export default function MfaManager() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code }),
     });
-    if (!resp.ok) return setError("Wrong code — check your authenticator and try again.");
+    if (!resp.ok) return setError("Wrong code. Check your authenticator app and try again.");
     const body = (await resp.json()) as { recovery_codes: string[] };
     setState({ step: "codes", codes: body.recovery_codes });
   }
@@ -66,11 +66,11 @@ export default function MfaManager() {
     case "signed_out":
       return (
         <p className="text-sm text-sumi-60">
-          Sign in first —{" "}
+          You need to{" "}
           <a href="/auth/start?next=/auth/mfa" className="text-indigo underline">
             sign in
-          </a>
-          .
+          </a>{" "}
+          first.
         </p>
       );
     case "disabled":
@@ -80,10 +80,10 @@ export default function MfaManager() {
             Two-factor authentication is <span className="font-medium text-ink">off</span>.
             Enable it to require a 6-digit code at every sign-in.
           </p>
-          {error ? <p className="text-sm text-torii">{error}</p> : null}
+          {error ? <p className="text-sm text-danger">{error}</p> : null}
           <button
             onClick={enroll}
-            className="rounded-[6px] bg-indigo px-3 py-2 text-sm font-medium text-white"
+            className="rounded-[6px] bg-indigo px-3 py-2 text-sm font-medium text-on-solid"
           >
             Enable two-factor authentication
           </button>
@@ -112,8 +112,8 @@ export default function MfaManager() {
             placeholder="123456"
             className={`${field} text-center tracking-widest`}
           />
-          {error ? <p className="text-sm text-torii">{error}</p> : null}
-          <button className="rounded-[6px] bg-indigo px-3 py-2 text-sm font-medium text-white">
+          {error ? <p className="text-sm text-danger">{error}</p> : null}
+          <button className="rounded-[6px] bg-indigo px-3 py-2 text-sm font-medium text-on-solid">
             Confirm & enable
           </button>
         </form>
@@ -125,8 +125,8 @@ export default function MfaManager() {
             Two-factor authentication is now on.
           </p>
           <p className="text-sm text-sumi-60">
-            Save these recovery codes somewhere safe — each works once if you lose your
-            authenticator. They will not be shown again.
+            Save these recovery codes somewhere safe. Each one works once if you lose your
+            authenticator, and they will not be shown again.
           </p>
           <div className="grid grid-cols-2 gap-2 rounded-[6px] bg-paper p-3">
             {state.codes.map((c) => (
@@ -158,8 +158,8 @@ export default function MfaManager() {
             placeholder="123456"
             className={`${field} text-center tracking-widest`}
           />
-          {error ? <p className="text-sm text-torii">{error}</p> : null}
-          <button className="rounded-[6px] border border-torii px-3 py-2 text-sm text-torii">
+          {error ? <p className="text-sm text-danger">{error}</p> : null}
+          <button className="rounded-[6px] border border-danger px-3 py-2 text-sm text-danger">
             Disable two-factor authentication
           </button>
         </form>

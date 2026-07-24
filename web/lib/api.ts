@@ -40,9 +40,15 @@ export async function fetchListing(id: string): Promise<Listing | null> {
 }
 
 export async function fetchCategories(): Promise<Category[]> {
-  const resp = await fetch(`${MARKET_URL}/categories`, { cache: "no-store" });
-  if (!resp.ok) return [];
-  return resp.json();
+  // try/catch as well as the !ok check: a refused connection rejects the fetch
+  // itself, which would otherwise 500 every page that renders the category row.
+  try {
+    const resp = await fetch(`${MARKET_URL}/categories`, { cache: "no-store" });
+    if (!resp.ok) return [];
+    return resp.json();
+  } catch {
+    return []; // market service unreachable
+  }
 }
 
 export type Order = {

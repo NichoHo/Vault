@@ -4,7 +4,7 @@ const steps = [
   { key: "created_at", label: "Order placed" },
   { key: "funded_at", label: "Payment in escrow" },
   { key: "shipped_at", label: "Shipped" },
-  { key: "completed_at", label: "Completed — escrow released" },
+  { key: "completed_at", label: "Completed, payment released" },
 ] as const;
 
 export default function OrderTimeline({ order }: { order: Order }) {
@@ -36,7 +36,7 @@ export default function OrderTimeline({ order }: { order: Order }) {
       {dead ? (
         <li className="rounded-[6px] bg-kohaku/10 px-3 py-2 text-sm text-kohaku">
           Order {order.status}
-          {order.status === "refunded" ? " — escrow returned to the buyer." : "."}
+          {order.status === "refunded" ? ". The buyer got their money back." : "."}
         </li>
       ) : null}
     </ol>

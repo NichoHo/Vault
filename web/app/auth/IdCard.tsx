@@ -1,4 +1,4 @@
-// Shared shell for IdP screens — visually distinct from the storefront:
+// Shared shell for IdP screens. Visually distinct from the storefront, because
 // the identity provider is its own product.
 export default function IdCard({
   title,
@@ -10,7 +10,7 @@ export default function IdCard({
   return (
     <div className="mx-auto mt-12 max-w-sm">
       <div className="mb-4 text-center">
-        <span className="rounded-[6px] bg-indigo px-2 py-1 text-xs font-bold tracking-widest text-white">
+        <span className="rounded-[6px] bg-indigo px-2 py-1 text-xs font-bold tracking-widest text-on-solid">
           VAULT ID
         </span>
       </div>

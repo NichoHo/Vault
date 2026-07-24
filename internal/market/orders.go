@@ -286,7 +286,7 @@ func (s *Server) handleShipOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 // completeOrder releases escrow then marks the order completed. Called by the
-// buyer's confirm AND the auto-release sweeper — possibly concurrently.
+// buyer's confirm AND the auto-release sweeper, possibly concurrently.
 // Exactly-once holds because (a) pay's release is idempotent on key
 // "release:<order>", and (b) the status flip is guarded by WHERE status='shipped'.
 func (s *Server) completeOrder(ctx context.Context, o Order) error {
@@ -455,7 +455,7 @@ func (s *Server) SweepReservations(ctx context.Context) (int, error) {
 	return n, nil
 }
 
-// SweepAutoRelease completes shipped orders older than the cutoff — the
+// SweepAutoRelease completes shipped orders older than the cutoff. The
 // "buyer never pressed confirm" timer.
 func (s *Server) SweepAutoRelease(ctx context.Context, after time.Duration) (int, error) {
 	rows, err := s.pool.Query(ctx,

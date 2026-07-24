@@ -1,6 +1,6 @@
 # Contributing to outboxkit
 
-Thanks for your interest! outboxkit is deliberately small and single-purpose —
+Thanks for your interest! outboxkit is deliberately small and single-purpose,
 the transactional-outbox relay and idempotent consumer for PostgreSQL. Changes
 that keep it focused and dependency-light are the easiest to merge.
 
@@ -15,7 +15,7 @@ cd outboxkit
 TEST_DATABASE_URL=postgres://user:pass@localhost:5432/db go test -race ./...
 ```
 
-The core package (`outboxkit`) must stay free of any message-broker dependency —
+The core package (`outboxkit`) must stay free of any message-broker dependency,
 it talks only to the `Publisher` interface. Broker-specific code goes in a
 subpackage (see `kafkapub`).
 

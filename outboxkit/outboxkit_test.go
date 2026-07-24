@@ -60,7 +60,7 @@ func unpublished(t *testing.T, pool *pgxpool.Pool) int {
 }
 
 // recordingPublisher records every message it is handed. failOn (1-indexed) is
-// the Publish call number that returns an error AFTER recording — simulating a
+// the Publish call number that returns an error AFTER recording, simulating a
 // relay that published a batch to the broker and then died before COMMIT.
 type recordingPublisher struct {
 	mu     sync.Mutex

@@ -5,7 +5,7 @@ import type { Category } from "@/lib/api";
 import { createListingAction, suggestAction, type Suggestion } from "./actions";
 
 const base =
-  "rounded-[6px] border bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-indigo";
+  "rounded-control border bg-surface text-ink px-3.5 py-2.5 text-sm outline-none transition-colors placeholder:text-faint focus:border-accent";
 
 type Fields = { title: string; description: string; category_id: string; price: string };
 const EMPTY: Fields = { title: "", description: "", category_id: "", price: "" };
@@ -43,7 +43,7 @@ export default function SellForm({
         setNote(
           result.error === "signed_out"
             ? "Sign in to use suggestions."
-            : "The assistant is unavailable right now — fill things in manually.",
+            : "The assistant is unavailable right now. Fill the fields in yourself.",
         );
         return;
       }
@@ -62,8 +62,8 @@ export default function SellForm({
       setAiFields(new Set(["title", "description", "category_id", ...(mid ? ["price" as const] : [])]));
       setNote(
         result.model === "heuristic"
-          ? "Draft from your hint + comparable prices (no vision model configured)."
-          : `Suggested by ${result.model} — edit anything before listing.`,
+          ? "Drafted from your hint and recent sale prices. No vision model is configured."
+          : `Suggested by ${result.model}. Edit anything before you list it.`,
       );
     });
   }
@@ -74,42 +74,15 @@ export default function SellForm({
     .join(",");
 
   const ai = (name: keyof Fields) =>
-    `${base} ${aiFields.has(name) ? "border-l-4 border-indigo" : "border-sumi-20"}`;
+    `${base} ${aiFields.has(name) ? "border-l-4 border-accent" : "border-line"}`;
 
   return (
     <form action={createListingAction} className="flex flex-col gap-3">
       {hadError ? (
-        <p className="rounded-[6px] bg-torii/10 px-3 py-2 text-sm text-torii">
+        <p className="rounded-control bg-danger-tint px-3.5 py-2.5 text-sm text-danger">
           Could not create the listing. Check the fields and try again.
         </p>
       ) : null}
-
-      <div className="flex gap-2">
-        <input
-          name="image_url"
-          type="url"
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-          aria-label="Photo URL"
-          placeholder="Photo URL"
-          className={`${base} border-sumi-20 flex-1`}
-        />
-        <button
-          type="button"
-          onClick={requestSuggestion}
-          disabled={pending || (!imageUrl && !fields.title)}
-          className="rounded-[6px] bg-indigo px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
-        >
-          {pending ? "Suggesting…" : <><span aria-hidden="true">✨</span> Suggest</>}
-        </button>
-      </div>
-      <p aria-live="polite" className="text-xs text-sumi-40 empty:hidden">
-        {note}
-      </p>
-      {imageUrl ? (
-        <img src={imageUrl} alt="Listing photo preview" className="max-h-48 rounded-[6px] object-cover" />
-      ) : null}
-
       <input
         name="title"
         required
@@ -120,17 +93,54 @@ export default function SellForm({
         onChange={(e) => setField("title", e.target.value)}
         className={ai("title")}
       />
+      <div className="flex gap-2">
+        <input
+          name="image_url"
+          type="url"
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+          aria-label="Photo URL"
+          placeholder="Photo URL"
+          className={`${base} border-line flex-1`}
+        />
+        <button
+          type="button"
+          onClick={requestSuggestion}
+          disabled={pending || (!imageUrl && !fields.title)}
+          className="inline-flex shrink-0 items-center gap-2 rounded-control bg-accent px-4 py-2.5 text-sm font-semibold text-on-solid shadow-sm transition-colors hover:bg-accent-strong disabled:opacity-45 disabled:shadow-none disabled:hover:bg-accent"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className={`h-4 w-4 ${pending ? "animate-pulse" : ""}`}
+          >
+            <path d="M10.5 3.5 12.3 8.2 17 10l-4.7 1.8-1.8 4.7-1.8-4.7L4 10l4.7-1.8z" />
+            <path d="M17.5 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z" />
+          </svg>
+          {pending ? "Suggesting…" : "Suggest"}
+        </button>
+      </div>
+      <p aria-live="polite" className="text-xs leading-5 text-faint empty:hidden">
+        {note}
+      </p>
+      {imageUrl ? (
+        <img src={imageUrl} alt="Listing photo preview" className="max-h-48 rounded-card object-cover" />
+      ) : null}
       <textarea
         name="description"
         rows={4}
         aria-label="Description"
-        placeholder="Description — condition, age, what's included"
+        placeholder="Description: condition, age, what's included"
         value={fields.description}
         onChange={(e) => setField("description", e.target.value)}
         className={ai("description")}
       />
       <div className="flex gap-3">
-        <label className="flex flex-1 items-center gap-2 text-sm text-sumi-60">
+        <label className="flex flex-1 items-center gap-2 text-sm text-muted">
           ¥
           <input
             name="price"
@@ -144,31 +154,50 @@ export default function SellForm({
             className={`${ai("price")} money w-full`}
           />
         </label>
-        <select
-          name="category_id"
-          aria-label="Category"
-          value={fields.category_id}
-          onChange={(e) => setField("category_id", e.target.value)}
-          className={`${ai("category_id")} flex-1`}
-        >
-          <option value="">No category</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        {/* appearance-none + our own chevron: the native arrow sits hard against
+            the right edge, which reads unbalanced against the 14px text inset. */}
+        <div className="relative flex-1">
+          <select
+            name="category_id"
+            aria-label="Category"
+            value={fields.category_id}
+            onChange={(e) => setField("category_id", e.target.value)}
+            className={`${ai("category_id")} w-full appearance-none pr-10`}
+          >
+            <option value="">No category</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+          >
+            <path d="m6 9.5 6 6 6-6" />
+          </svg>
+        </div>
       </div>
       {suggestion?.price_low != null && suggestion?.price_high != null ? (
-        <p className="money text-xs text-sumi-40">
-          Comparable items sold for ¥{suggestion.price_low.toLocaleString("ja-JP")} – ¥
+        <p className="money text-xs text-faint">
+          Similar items sold for ¥{suggestion.price_low.toLocaleString("ja-JP")} to ¥
           {suggestion.price_high.toLocaleString("ja-JP")}
         </p>
       ) : null}
 
       <input type="hidden" name="suggestion_id" value={suggestion?.suggestion_id ?? ""} />
       <input type="hidden" name="accepted_fields" value={suggestion ? acceptedFields : ""} />
-      <button type="submit" className="rounded-[6px] bg-torii px-4 py-2.5 font-medium text-white">
+      <button
+        type="submit"
+        className="mt-1 rounded-control bg-accent px-4 py-2.5 text-sm font-semibold text-on-solid shadow-sm transition-colors hover:bg-accent-strong"
+      >
         List it
       </button>
     </form>

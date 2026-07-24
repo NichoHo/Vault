@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 // e2e runs against a already-running compose stack (make up + seed), not a
-// dev server — the flow spans six services. See web/e2e/README note.
+// dev server, because the flow spans six services. See web/e2e/README note.
 export default defineConfig({
   testDir: "./e2e",
   timeout: 150_000,

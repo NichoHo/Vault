@@ -64,13 +64,13 @@ export default function RegisterForm({ returnTo }: { returnTo: string }) {
         placeholder="Password (8+ characters)"
         className="rounded-[6px] border border-sumi-20 px-3 py-2 text-sm outline-none focus:border-indigo"
       />
-      <p aria-live="polite" className="text-sm text-torii empty:hidden">
+      <p aria-live="polite" className="text-sm text-danger empty:hidden">
         {error}
       </p>
       <button
         type="submit"
         disabled={busy}
-        className="rounded-[6px] bg-indigo px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-[6px] bg-indigo px-3 py-2 text-sm font-medium text-on-solid disabled:opacity-50"
       >
         {busy ? "Creating account…" : "Create account"}
       </button>

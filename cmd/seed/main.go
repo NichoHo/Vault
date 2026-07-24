@@ -34,7 +34,7 @@ var items = []item{
 	{"Gundam RX-78-2 MG kit (unbuilt)", "Sealed box, bought duplicate by mistake.", "hobby", "https://picsum.photos/seed/gundam/800/600", 4300},
 	{"Sony WH-1000XM4 headphones", "Earpads replaced with official parts last month.", "electronics", "https://picsum.photos/seed/xm4/800/600", 19800},
 	{"Levi's 501 (W32 L32)", "Classic straight fit, honest fade.", "fashion", "https://picsum.photos/seed/levis/800/600", 5600},
-	{"Norwegian Wood — Murakami", "English paperback, good condition.", "books", "https://picsum.photos/seed/norwood/800/600", 800},
+	{"Norwegian Wood by Murakami", "English paperback, good condition.", "books", "https://picsum.photos/seed/norwood/800/600", 800},
 	{"Muji oak desk lamp", "Warm LED, dimmer works perfectly.", "home", "https://picsum.photos/seed/lamp/800/600", 3200},
 	{"Shimano 105 rear derailleur", "Taken off an upgrade build, ~500km use.", "hobby", "https://picsum.photos/seed/105rd/800/600", 6200},
 	{"iPad (9th gen, 64GB, WiFi)", "Screen protector since day one. Battery 89%.", "electronics", "https://picsum.photos/seed/ipad9/800/600", 28000},

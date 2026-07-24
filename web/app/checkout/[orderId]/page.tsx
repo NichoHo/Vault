@@ -69,7 +69,7 @@ export default async function CheckoutPage({
         <dl className="mt-4 space-y-1 border-t border-sumi-20 pt-3 text-sm">
           <div className="flex justify-between">
             <dt className="text-sumi-60">Your wallet</dt>
-            <dd className={`money ${short ? "text-torii" : ""}`}>{yen(balance)}</dd>
+            <dd className={`money ${short ? "text-danger" : ""}`}>{yen(balance)}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-sumi-60">Held in escrow until you confirm receipt</dt>
@@ -79,18 +79,18 @@ export default async function CheckoutPage({
       </div>
 
       {sp.error === "funds" || short ? (
-        <div className="mt-4 rounded-[6px] bg-torii/10 px-3 py-2 text-sm text-torii">
+        <div className="mt-4 rounded-[6px] bg-danger-tint px-3 py-2 text-sm text-danger">
           Not enough funds in your wallet.
           <form action={topUpAction} className="mt-2">
             <input type="hidden" name="order_id" value={order.id} />
-            <button className="rounded-[6px] bg-indigo px-3 py-1.5 text-white">
+            <button className="rounded-[6px] bg-indigo px-3 py-1.5 text-on-solid">
               Add ¥50,000 demo funds
             </button>
           </form>
         </div>
       ) : null}
       {sp.error === "pay" ? (
-        <p className="mt-4 rounded-[6px] bg-torii/10 px-3 py-2 text-sm text-torii">
+        <p className="mt-4 rounded-[6px] bg-danger-tint px-3 py-2 text-sm text-danger">
           Payment failed. Try again.
         </p>
       ) : null}
@@ -100,7 +100,7 @@ export default async function CheckoutPage({
         <button
           type="submit"
           disabled={short}
-          className="w-full rounded-[6px] bg-torii px-4 py-2.5 font-medium text-white disabled:opacity-50"
+          className="w-full rounded-[6px] bg-torii px-4 py-2.5 font-medium text-on-solid disabled:opacity-50"
         >
           Pay {yen(order.price_minor)}
         </button>

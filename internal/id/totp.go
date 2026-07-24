@@ -1,5 +1,5 @@
 // TOTP (RFC 6238) over HOTP (RFC 4226): HMAC-SHA1, 30-second steps, 6 digits.
-// Hand-rolled like the JWTs — the IdP's crypto is the curriculum.
+// Hand-rolled like the JWTs, because the IdP's crypto is the curriculum.
 package id
 
 import (

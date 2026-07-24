@@ -1,21 +1,21 @@
 const map: Record<string, string> = {
-  pending_payment: "bg-kohaku text-white",
-  funded: "bg-kohaku text-white",
-  shipped: "bg-indigo text-white",
-  completed: "bg-moss text-white",
-  cancelled: "bg-sumi-40 text-white",
-  refunded: "bg-sumi-40 text-white",
-  active: "bg-moss text-white",
-  reserved: "bg-kohaku text-white",
-  sold: "bg-sumi-60 text-white",
-  draft: "bg-sumi-40 text-white",
-  withdrawn: "bg-kohaku text-white",
+  pending_payment: "bg-kohaku text-on-solid",
+  funded: "bg-kohaku text-on-solid",
+  shipped: "bg-indigo text-on-solid",
+  completed: "bg-moss text-on-solid",
+  cancelled: "bg-sumi-40 text-on-solid",
+  refunded: "bg-sumi-40 text-on-solid",
+  active: "bg-moss text-on-solid",
+  reserved: "bg-kohaku text-on-solid",
+  sold: "bg-sumi-60 text-on-solid",
+  draft: "bg-sumi-40 text-on-solid",
+  withdrawn: "bg-kohaku text-on-solid",
 };
 
 export default function StatusBadge({ status }: { status: string }) {
   return (
     <span
-      className={`rounded-[6px] px-2 py-0.5 text-xs font-medium ${map[status] ?? "bg-sumi-40 text-white"}`}
+      className={`rounded-[6px] px-2 py-0.5 text-xs font-medium ${map[status] ?? "bg-sumi-40 text-on-solid"}`}
     >
       {status.replace("_", " ")}
     </span>

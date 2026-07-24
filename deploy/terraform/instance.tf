@@ -1,7 +1,7 @@
-# ponytail: single instance, no ASG/ALB/RDS — swap in ECS+RDS if the demo needs HA.
+# ponytail: single instance, no ASG/ALB/RDS. Swap in ECS+RDS if the demo needs HA.
 
 # ---------------------------------------------------------------------------
-# Vault — EC2 instance
+# Vault: EC2 instance
 # ---------------------------------------------------------------------------
 
 # ── Latest Amazon Linux 2023 AMI ─────────────────────────────────────────────

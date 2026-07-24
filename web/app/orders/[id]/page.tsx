@@ -36,7 +36,7 @@ function ActionButton({
         type="submit"
         className={
           primary
-            ? "w-full rounded-[6px] bg-torii px-4 py-2.5 font-medium text-white"
+            ? "w-full rounded-[6px] bg-torii px-4 py-2.5 font-medium text-on-solid"
             : "w-full rounded-[6px] border border-sumi-20 px-4 py-2 text-sm"
         }
       >
@@ -86,7 +86,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         {isBuyer && order.status === "pending_payment" ? (
           <Link
             href={`/checkout/${order.id}`}
-            className="w-full rounded-[6px] bg-torii px-4 py-2.5 text-center font-medium text-white"
+            className="w-full rounded-[6px] bg-torii px-4 py-2.5 text-center font-medium text-on-solid"
           >
             Go to checkout
           </Link>
@@ -98,7 +98,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           <ActionButton
             action="confirm"
             orderID={order.id}
-            label="Confirm receipt — release escrow"
+            label="Confirm it arrived and pay the seller"
             primary
           />
         ) : null}
@@ -111,7 +111,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       </div>
       {isBuyer && order.status === "shipped" ? (
         <p className="mt-3 text-center text-xs text-sumi-40">
-          Escrow auto-releases to the seller 72h after shipping if you don&apos;t confirm.
+          If you don&apos;t confirm, the seller is paid automatically 72 hours after shipping.
         </p>
       ) : null}
     </div>

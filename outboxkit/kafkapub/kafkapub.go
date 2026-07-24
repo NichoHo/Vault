@@ -1,6 +1,6 @@
 // Package kafkapub is an outboxkit.Publisher backed by Kafka/Redpanda via
 // franz-go. It lives in its own module so outboxkit's core carries no broker
-// dependency — import this only where you actually publish to Kafka.
+// dependency, so import this only where you actually publish to Kafka.
 //
 // Every message is produced to a single stream topic (e.g. "market.events")
 // with the outbox row's domain topic carried in a "domain-topic" header and the

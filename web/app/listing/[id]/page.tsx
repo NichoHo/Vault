@@ -60,7 +60,7 @@ export default async function ListingPage({
         </div>
         {sp.error === "unavailable" ? (
           <p className="mt-4 rounded-[6px] bg-kohaku/10 px-3 py-2 text-sm text-kohaku">
-            Someone else got there first — this listing is no longer available.
+            Someone else got there first. This listing is no longer available.
           </p>
         ) : null}
         {buyable ? (
@@ -68,13 +68,13 @@ export default async function ListingPage({
             <input type="hidden" name="listing_id" value={listing.id} />
             <button
               type="submit"
-              className="mt-6 w-full rounded-[6px] bg-torii px-4 py-2.5 font-medium text-white transition-opacity hover:opacity-90"
+              className="mt-6 w-full rounded-[6px] bg-torii px-4 py-2.5 font-medium text-on-solid transition-opacity hover:opacity-90"
             >
-              Buy — funds held in escrow
+              Buy with escrow protection
             </button>
             <p className="mt-2 text-center text-xs text-sumi-40">
-              Your payment is held on a double-entry ledger and released to the seller only
-              after you confirm receipt.
+              We hold your payment until you confirm the item arrived. Only then does the
+              seller get paid.
             </p>
           </form>
         ) : (

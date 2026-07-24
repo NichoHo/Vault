@@ -46,7 +46,7 @@ export default async function AdminPage() {
     return <p className="text-sm text-sumi-60">The assist service is unreachable.</p>;
   }
 
-  const pct = (v: number | null) => (v == null ? "—" : `${Math.round(v * 100)}%`);
+  const pct = (v: number | null) => (v == null ? "–" : `${Math.round(v * 100)}%`);
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -82,8 +82,8 @@ export default async function AdminPage() {
           {risks.map((r) => (
             <li key={r.id} className="flex items-center gap-3 px-4 py-3 text-sm">
               <span
-                className={`money rounded-[6px] px-2 py-0.5 text-xs font-bold text-white ${
-                  r.score >= 0.8 ? "bg-torii" : "bg-kohaku"
+                className={`money rounded-[6px] px-2 py-0.5 text-xs font-bold text-on-solid ${
+                  r.score >= 0.8 ? "bg-danger" : "bg-kohaku"
                 }`}
               >
                 {r.score.toFixed(1)}
@@ -99,14 +99,14 @@ export default async function AdminPage() {
                   <form action={resolveRiskAction}>
                     <input type="hidden" name="id" value={r.id} />
                     <input type="hidden" name="action" value="approve" />
-                    <button className="rounded-[6px] bg-moss px-2 py-1 text-xs text-white">
+                    <button className="rounded-[6px] bg-moss px-2 py-1 text-xs text-on-solid">
                       Approve
                     </button>
                   </form>
                   <form action={resolveRiskAction}>
                     <input type="hidden" name="id" value={r.id} />
                     <input type="hidden" name="action" value="reject" />
-                    <button className="rounded-[6px] bg-torii px-2 py-1 text-xs text-white">
+                    <button className="rounded-[6px] bg-danger px-2 py-1 text-xs text-on-solid">
                       Reject
                     </button>
                   </form>

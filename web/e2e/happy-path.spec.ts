@@ -75,13 +75,13 @@ test("register, MFA, AI listing, escrow buy, wallet reconcile", async ({ page })
   // 2. AI-assisted listing: hint → Suggest fills the fields → override the price.
   await page.getByPlaceholder("Title").fill("Sony WH-1000XM4 headphones");
   await page.getByRole("button", { name: /Suggest/ }).click();
-  await expect(page.getByText(/Comparable items sold for/)).toBeVisible();
+  await expect(page.getByText(/Similar items sold for/)).toBeVisible();
   await page.getByPlaceholder("Price (yen)").fill(String(PRICE));
   await page.getByRole("button", { name: "List it" }).click();
   await expect(page).toHaveURL(/\/listing\//);
   const listingURL = page.url();
 
-  // 3. MFA enroll — read the secret off the page, compute the code, confirm.
+  // 3. MFA enroll: read the secret off the page, compute the code, confirm.
   await page.goto("/auth/mfa");
   await page.getByRole("button", { name: "Enable two-factor authentication" }).click();
   const secret = (await page.locator("code").first().innerText()).trim();
@@ -89,7 +89,7 @@ test("register, MFA, AI listing, escrow buy, wallet reconcile", async ({ page })
   await page.getByRole("button", { name: "Confirm & enable" }).click();
   await expect(page.getByText("Two-factor authentication is now on.")).toBeVisible();
 
-  // 4. Sign out, sign back in — the TOTP step-up must gate the login.
+  // 4. Sign out, sign back in: the TOTP step-up must gate the login.
   await signOut(page);
   await login(page, seller.email, seller.password, secret);
 
@@ -115,7 +115,7 @@ test("register, MFA, AI listing, escrow buy, wallet reconcile", async ({ page })
   await signOut(page);
   await login(page, bob.email, bob.password);
   await openOrder(page, "buyer");
-  await page.getByRole("button", { name: /Confirm receipt/ }).click();
+  await page.getByRole("button", { name: /Confirm it arrived/ }).click();
   await expect(page.locator("span", { hasText: /^completed$/ })).toBeVisible();
 
   // 8. Wallets reconcile: bob −PRICE, seller +90%.

@@ -14,3 +14,9 @@ playwright-report/
 .claude
 CLAUDE.md
 **/CLAUDE.md
+# Agent tooling and AI-generated planning docs: kept locally, not shipped.
+.agents/
+skills-lock.json
+AGENTS.md
+**/AGENTS.md
+docs/superpowers/

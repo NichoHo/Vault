@@ -35,7 +35,7 @@ export async function middleware(req: NextRequest) {
       cache: "no-store",
     });
     if (!resp.ok) {
-      // rotated-away or revoked family — drop both cookies, act signed out
+      // rotated-away or revoked family: drop both cookies, act signed out
       const out = NextResponse.next();
       out.cookies.delete("vault_token");
       out.cookies.delete("vault_refresh");
@@ -62,6 +62,6 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // pages only — skip static assets and the auth endpoints themselves
+  // pages only: skip static assets and the auth endpoints themselves
   matcher: ["/((?!_next|favicon|auth/|idp/).*)"],
 };

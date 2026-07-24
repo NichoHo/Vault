@@ -13,7 +13,7 @@
 // side effect in Idempotent.Guard, which records the event id in the same
 // transaction as the effect.
 //
-// The core package has no message-broker dependency — it talks to a Publisher
+// The core package has no message-broker dependency. It talks to a Publisher
 // interface. See the kafkapub subpackage for a Redpanda/Kafka implementation.
 package outboxkit
 

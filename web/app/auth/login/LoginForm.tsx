@@ -50,7 +50,7 @@ export default function LoginForm({ returnTo }: { returnTo: string }) {
       window.location.href = returnTo;
     } else {
       setBusy(false);
-      setError(step === "totp" ? "Wrong code — try again." : "Invalid recovery code.");
+      setError(step === "totp" ? "Wrong code. Try again." : "Invalid recovery code.");
     }
   }
 
@@ -73,13 +73,13 @@ export default function LoginForm({ returnTo }: { returnTo: string }) {
           placeholder={step === "totp" ? "123456" : "recovery code"}
           className={`${field} text-center tracking-widest`}
         />
-        <p aria-live="polite" className="text-sm text-torii empty:hidden">
+        <p aria-live="polite" className="text-sm text-danger empty:hidden">
           {error}
         </p>
         <button
           type="submit"
           disabled={busy}
-          className="rounded-[6px] bg-indigo px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-[6px] bg-indigo px-3 py-2 text-sm font-medium text-on-solid disabled:opacity-50"
         >
           {busy ? "Verifying…" : "Verify"}
         </button>
@@ -115,13 +115,13 @@ export default function LoginForm({ returnTo }: { returnTo: string }) {
         placeholder="Password"
         className={field}
       />
-      <p aria-live="polite" className="text-sm text-torii empty:hidden">
+      <p aria-live="polite" className="text-sm text-danger empty:hidden">
         {error}
       </p>
       <button
         type="submit"
         disabled={busy}
-        className="rounded-[6px] bg-indigo px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-[6px] bg-indigo px-3 py-2 text-sm font-medium text-on-solid disabled:opacity-50"
       >
         {busy ? "Signing in…" : "Sign in"}
       </button>

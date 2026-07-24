@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { fetchWallet, payDeposit, yen } from "@/lib/api";
+import ServiceUnavailable from "@/components/ServiceUnavailable";
+import { fetchWallet, payDeposit, yen, type Wallet } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 
 async function topUpAction() {
@@ -22,7 +23,27 @@ const kindLabel: Record<string, string> = {
 export default async function WalletPage() {
   const token = await getToken();
   if (!token) redirect("/auth/start?next=/wallet");
-  const wallet = await fetchWallet(token);
+  // A pay-service outage must never render as a ¥0 balance, which reads as
+  // "your money is gone". Keep unreachable distinct from unauthorized.
+  let wallet: Wallet | null = null;
+  let unreachable = false;
+  try {
+    wallet = await fetchWallet(token);
+  } catch {
+    unreachable = true;
+  }
+
+  if (unreachable) {
+    return (
+      <div className="mx-auto max-w-md">
+        <h1 className="mb-4 text-xl font-bold">Wallet</h1>
+        <ServiceUnavailable
+          service="wallet"
+          detail="Your balance and history can’t be loaded right now. This is not a zero balance, and no funds are affected."
+        />
+      </div>
+    );
+  }
   if (!wallet) redirect("/auth/start?next=/wallet");
 
   return (
@@ -32,14 +53,14 @@ export default async function WalletPage() {
         <p className="text-sm text-sumi-60">Balance</p>
         <p className="money text-4xl font-bold">{yen(wallet.balance_minor)}</p>
         <form action={topUpAction} className="mt-4">
-          <button className="rounded-[6px] bg-indigo px-4 py-2 text-sm font-medium text-white">
+          <button className="rounded-[6px] bg-indigo px-4 py-2 text-sm font-medium text-on-solid">
             Add ¥50,000 demo funds
           </button>
         </form>
       </div>
 
       <h2 className="mb-2 mt-6 text-sm font-bold text-sumi-60">
-        Ledger entries — your side of every transfer
+        Every payment in and out of your account
       </h2>
       {wallet.entries.length === 0 ? (
         <p className="text-sm text-sumi-60">No activity yet.</p>
@@ -64,7 +85,7 @@ export default async function WalletPage() {
                   </p>
                 </div>
                 <span
-                  className={`money font-medium ${e.amount_minor > 0 ? "text-moss" : "text-torii"}`}
+                  className={`money font-medium ${e.amount_minor > 0 ? "text-moss" : "text-danger"}`}
                 >
                   {e.amount_minor > 0 ? "+" : ""}
                   {yen(e.amount_minor).replace("¥-", "-¥")}

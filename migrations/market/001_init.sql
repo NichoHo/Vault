@@ -5,7 +5,7 @@ CREATE TABLE categories (
 );
 
 -- reserved/sold states + reservations arrive in Phase 2;
--- listing_images table arrives with uploads in Phase 3 — image_url carries the demo.
+-- listing_images table arrives with uploads in Phase 3; image_url carries the demo.
 CREATE TABLE listings (
     id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     seller_id   uuid NOT NULL,

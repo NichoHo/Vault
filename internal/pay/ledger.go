@@ -4,7 +4,7 @@
 //   - every transfer writes two signed entries that sum to zero;
 //   - account.balance always equals the sum of that account's entries;
 //   - a user balance can never go negative (checked here AND by a DB constraint);
-//   - an idempotency key executes at most once — replays return the original.
+//   - an idempotency key executes at most once; replays return the original.
 package pay
 
 import (
@@ -53,7 +53,7 @@ func (l *Ledger) AccountFor(ctx context.Context, ownerType string, ownerID *stri
 		`INSERT INTO pay.accounts (owner_type, owner_id) VALUES ($1, $2) RETURNING id`,
 		ownerType, ownerID).Scan(&id)
 	if isUniqueViolation(err, "accounts_owner_idx") {
-		// lost a creation race — the row exists now
+		// lost a creation race, the row exists now
 		if err2 := l.Pool.QueryRow(ctx, sel, ownerType, ownerID).Scan(&id); err2 == nil {
 			return id, nil
 		}
@@ -68,7 +68,7 @@ type transferArgs struct {
 }
 
 // transferInTx moves money inside an existing transaction. Both account rows
-// are locked FOR UPDATE in id order (lock ordering — concurrent transfers
+// are locked FOR UPDATE in id order (lock ordering, so concurrent transfers
 // touching the same accounts serialize instead of deadlocking).
 func transferInTx(ctx context.Context, tx pgx.Tx, a transferArgs) (Transfer, error) {
 	if a.amount <= 0 {
@@ -151,7 +151,7 @@ func (l *Ledger) transfer(ctx context.Context, a transferArgs) (Transfer, error)
 	defer tx.Rollback(ctx)
 	t, err := transferInTx(ctx, tx, a)
 	if isUniqueViolation(err, "transfers_idempotency_key_key") {
-		// lost the race with a concurrent identical request — return theirs
+		// lost the race with a concurrent identical request, return theirs
 		return l.existing(ctx, a.key)
 	}
 	if err != nil {

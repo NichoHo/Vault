@@ -19,7 +19,7 @@ buyer is seeded `bob@vault.test` (¥100,000, MFA off). `e2e/totp.ts` mirrors
 `internal/id/totp.go` so the test computes the same TOTP code the IdP expects
 for the MFA step.
 
-> This is intentionally **not** part of the unit CI job — it needs the full
+> This is intentionally **not** part of the unit CI job, because it needs the full
 > stack (Postgres + Redpanda + four services + web). Run it against a deployed
 > or local compose environment. On failure, Playwright writes a trace to
 > `test-results/`; open it with `npx playwright show-trace <trace.zip>`.

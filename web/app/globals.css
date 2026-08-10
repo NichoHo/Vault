@@ -14,50 +14,53 @@
    ============================================================================ */
 
 @theme {
-  /* ---- Neutral surface scale (cool near-neutral, reads clean/premium) ---- */
-  --color-canvas: #f6f7f9; /* app background */
-  --color-surface: #ffffff; /* cards, primary panels */
-  --color-surface-2: #fbfcfd; /* subtly raised / alternate rows */
+  /* ---- Slate Enterprise (v3) Surface Scale ----------------------------- */
+  --color-canvas: #f8fafc; /* deep workspace canvas */
+  --color-surface: #ffffff; /* primary card & content panels */
+  --color-surface-2: #f1f5f9; /* elevated rows & active sidebars */
+  --color-surface-3: #e2e8f0; /* raised control fills & sub-cards */
 
   /* ---- Ink & text ramp (all AA on surface/canvas) ------------------------ */
-  --color-ink: #0f1524; /* primary text */
-  --color-ink-2: #38414f; /* secondary text */
-  --color-muted: #5b6474; /* tertiary / captions (>=4.5:1 on white) */
-  --color-faint: #9096a2; /* placeholder / disabled */
+  --color-ink: #0f172a; /* primary text */
+  --color-ink-2: #334155; /* secondary text */
+  --color-muted: #64748b; /* tertiary / captions (>=4.5:1 on white) */
+  --color-faint: #94a3b8; /* placeholder / disabled */
 
   /* ---- Lines & fills ----------------------------------------------------- */
-  --color-line: #e6e8ee; /* hairline borders */
-  --color-line-strong: #d3d7df; /* hover borders, dividers */
-  --color-fill: #eef0f4; /* chip bg, skeleton, code, subtle fill */
+  --color-line: #e2e8f0; /* hairline borders */
+  --color-line-strong: #cbd5e1; /* hover borders, dividers */
+  --color-fill: #f1f5f9; /* chip bg, skeleton, code, subtle fill */
 
-  /* ---- Accent (the single trust hue): links, primary CTA, focus, security  */
-  --color-accent: #4f46e5;
-  --color-accent-strong: #4338ca; /* hover / pressed */
-  --color-accent-tint: #eef0fe; /* accent-tinted surface */
-  /* Foreground for ANY solid accent/semantic fill (buttons, badges). Exists so
-     dark mode can lighten the solids for readable link text without breaking
-     white-on-color: in dark this flips to near-black. */
+  /* ---- Accent (Electric Indigo Trust Hue): links, CTA, focus, security ---- */
+  --color-accent: #6366f1;
+  --color-accent-strong: #4f46e5; /* hover / pressed */
+  --color-accent-tint: #eef2ff; /* accent-tinted surface */
   --color-on-solid: #ffffff;
 
-  /* ---- Semantics (values kept dark enough for white-on-color badges) ----- */
-  --color-success: #157a53; /* escrow released / paid */
-  --color-success-tint: #e6f5ee;
-  --color-warning: #b45309; /* pending / warnings */
-  --color-warning-tint: #fbeede;
-  --color-danger: #c81e14; /* errors / destructive (AA on white and on -tint) */
-  --color-danger-tint: #fdecec;
+  /* ---- Semantics & Enterprise Trust Badging ------------------------------ */
+  --color-success: #10b981; /* escrow released / verified paid */
+  --color-success-tint: #ecfdf5;
+  --color-warning: #f59e0b; /* pending inspection / holds */
+  --color-warning-tint: #fffbeb;
+  --color-danger: #ef4444; /* errors / disputes / destructive */
+  --color-danger-tint: #fef2f2;
+  --color-copilot: #8b5cf6; /* AI listing assistant co-creation hue */
+  --color-copilot-tint: #f5f3ff;
 
   /* ---- Type -------------------------------------------------------------- */
   --font-sans: var(--font-inter), var(--font-noto), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), var(--font-jetbrains), monospace;
 
-  /* ---- Radii (softer, modern; custom names, safe to enlarge) ------------- */
-  --radius-control: 10px;
-  --radius-card: 14px;
+  /* ---- Radii (enterprise precision) -------------------------------------- */
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-panel: 16px;
 
-  /* ---- Elevation: soft, layered (overrides Tailwind's default shadows) ---- */
-  --shadow-sm: 0 1px 2px rgb(15 21 36 / 0.04), 0 1px 3px rgb(15 21 36 / 0.06);
-  --shadow-md: 0 2px 6px -1px rgb(15 21 36 / 0.05), 0 10px 20px -6px rgb(15 21 36 / 0.1);
-  --shadow-lg: 0 4px 10px -2px rgb(15 21 36 / 0.06), 0 24px 40px -12px rgb(15 21 36 / 0.16);
+  /* ---- Elevation: soft, ambient glows & layered enterprise depth --------- */
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
+  --shadow-md: 0 4px 6px -1px rgb(15 23 42 / 0.05), 0 10px 15px -3px rgb(15 23 42 / 0.08);
+  --shadow-lg: 0 10px 25px -5px rgb(15 23 42 / 0.08), 0 20px 48px -12px rgb(15 23 42 / 0.12);
+  --shadow-glow: 0 0 20px -5px rgba(99, 102, 241, 0.25);
   --shadow-elevated: var(--shadow-lg); /* legacy name (modals/toasts) */
 }
 
@@ -167,32 +170,36 @@
    since a light shadow on a dark surface reads as fog, not depth. */
 :root[data-theme="dark"] {
   color-scheme: dark; /* native scrollbars, form controls, autofill */
-  --color-canvas: #0b0e14;
-  --color-surface: #131823;
-  --color-surface-2: #19202d;
+  --color-canvas: #090d16;
+  --color-surface: #111726;
+  --color-surface-2: #182032;
+  --color-surface-3: #202b42;
 
-  --color-ink: #e8ecf3;
-  --color-ink-2: #c0c8d6;
-  --color-muted: #96a0b2;
-  --color-faint: #7d8698;
+  --color-ink: #f1f5f9;
+  --color-ink-2: #cbd5e1;
+  --color-muted: #94a3b8;
+  --color-faint: #64748b;
 
-  --color-line: #242b3a;
-  --color-line-strong: #333c4f;
-  --color-fill: #1a2130;
+  --color-line: #1e293b;
+  --color-line-strong: #334155;
+  --color-fill: #1e293b;
 
-  --color-accent: #8b93f8;
-  --color-accent-strong: #a9b0fc;
-  --color-accent-tint: #1b2040;
-  --color-on-solid: #0b0e14;
+  --color-accent: #818cf8;
+  --color-accent-strong: #a5b4fc;
+  --color-accent-tint: #1e1b4b;
+  --color-on-solid: #090d16;
 
-  --color-success: #35c88d;
-  --color-success-tint: #0e2a20;
-  --color-warning: #e0a33a;
-  --color-warning-tint: #2c2110;
-  --color-danger: #f27b72;
-  --color-danger-tint: #2e1719;
+  --color-success: #34d399;
+  --color-success-tint: #064e3b;
+  --color-warning: #fbbf24;
+  --color-warning-tint: #451a03;
+  --color-danger: #f87171;
+  --color-danger-tint: #450a0a;
+  --color-copilot: #a78bfa;
+  --color-copilot-tint: #2e1065;
 
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.3);
-  --shadow-md: 0 2px 6px -1px rgb(0 0 0 / 0.4), 0 10px 20px -6px rgb(0 0 0 / 0.5);
-  --shadow-lg: 0 4px 10px -2px rgb(0 0 0 / 0.45), 0 24px 40px -12px rgb(0 0 0 / 0.6);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 10px 15px -3px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 10px 25px -5px rgb(0 0 0 / 0.45), 0 20px 48px -12px rgb(0 0 0 / 0.6);
+  --shadow-glow: 0 0 24px -4px rgba(129, 140, 248, 0.3);
 }

@@ -58,70 +58,68 @@ async function openOrder(page: Page, role: "buyer" | "seller") {
   await page.getByRole("link").filter({ hasText: "Sony WH-1000XM4" }).first().click();
 }
 
-test("register, MFA, AI listing, escrow buy, wallet reconcile", async ({ page }) => {
+test("register, MFA, AI listing, escrow buy, wallet reconcile", async ({ browser }) => {
+  const sellerContext = await browser.newContext();
+  const sellerPage = await sellerContext.newPage();
+  
+  const buyerContext = await browser.newContext();
+  const buyerPage = await buyerContext.newPage();
+
   // 1. Register the seller (auth/start bounces through the IdP to the login screen).
-  await page.goto("/auth/start?next=/sell");
-  await page.getByRole("link", { name: "Register" }).click();
+  await sellerPage.goto("/auth/start?next=/sell");
+  await sellerPage.getByRole("link", { name: "Register" }).click();
   // wait for the client-side nav to the register page before filling, or the
   // email fill races onto the login page's email input and gets wiped
-  await expect(page.getByRole("heading", { name: /Create your Vault ID/ })).toBeVisible();
-  await page.getByPlaceholder("Email").fill(seller.email);
-  await page.getByPlaceholder("Handle (a-z, 0-9, _)").fill(seller.handle);
-  await page.getByPlaceholder("Password (8+ characters)").fill(seller.password);
-  await page.getByRole("button", { name: "Create account" }).click();
-  await resolveConsent(page);
-  await expect(page.getByRole("heading", { name: "Sell an item" })).toBeVisible();
+  await expect(sellerPage.getByRole("heading", { name: /Create your Vault ID/ })).toBeVisible();
+  await sellerPage.getByPlaceholder("Email").fill(seller.email);
+  await sellerPage.getByPlaceholder("Handle (a-z, 0-9, _)").fill(seller.handle);
+  await sellerPage.getByPlaceholder("Password (8+ characters)").fill(seller.password);
+  await sellerPage.getByRole("button", { name: "Create account" }).click();
+  await resolveConsent(sellerPage);
+  await expect(sellerPage.getByRole("heading", { name: "Sell an item" })).toBeVisible();
 
   // 2. AI-assisted listing: hint → Suggest fills the fields → override the price.
-  await page.getByPlaceholder("Title").fill("Sony WH-1000XM4 headphones");
-  await page.getByRole("button", { name: /Suggest/ }).click();
-  await expect(page.getByText(/Similar items sold for/)).toBeVisible();
-  await page.getByPlaceholder("Price (yen)").fill(String(PRICE));
-  await page.getByRole("button", { name: "List it" }).click();
-  await expect(page).toHaveURL(/\/listing\//);
-  const listingURL = page.url();
+  await sellerPage.getByPlaceholder("Title").fill("Sony WH-1000XM4 headphones");
+  await sellerPage.getByRole("button", { name: /Suggest/ }).click();
+  await expect(sellerPage.getByText(/Similar items sold for/)).toBeVisible();
+  await sellerPage.getByPlaceholder("Price (yen)").fill(String(PRICE));
+  await sellerPage.getByRole("button", { name: "List it" }).click();
+  await expect(sellerPage).toHaveURL(/\/listing\//);
+  const listingURL = sellerPage.url();
 
   // 3. MFA enroll: read the secret off the page, compute the code, confirm.
-  await page.goto("/auth/mfa");
-  await page.getByRole("button", { name: "Enable two-factor authentication" }).click();
-  const secret = (await page.locator("code").first().innerText()).trim();
-  await page.getByPlaceholder("123456").fill(totp(secret));
-  await page.getByRole("button", { name: "Confirm & enable" }).click();
-  await expect(page.getByText("Two-factor authentication is now on.")).toBeVisible();
+  await sellerPage.goto("/auth/mfa");
+  await sellerPage.getByRole("button", { name: "Enable two-factor authentication" }).click();
+  const secret = (await sellerPage.locator("code").first().innerText()).trim();
+  await sellerPage.getByPlaceholder("123456").fill(totp(secret));
+  await sellerPage.getByRole("button", { name: "Confirm & enable" }).click();
+  await expect(sellerPage.getByText("Two-factor authentication is now on.")).toBeVisible();
 
   // 4. Sign out, sign back in: the TOTP step-up must gate the login.
-  await signOut(page);
-  await login(page, seller.email, seller.password, secret);
+  await signOut(sellerPage);
+  await login(sellerPage, seller.email, seller.password, secret);
 
   // 5. Buy as bob (seeded, funded). Snapshot his balance first.
-  await signOut(page);
-  await login(page, bob.email, bob.password);
-  const bobBefore = await balance(page);
+  await login(buyerPage, bob.email, bob.password);
+  const bobBefore = await balance(buyerPage);
 
-  await page.goto(listingURL);
-  await page.getByRole("button", { name: /Buy/ }).click();
-  await expect(page).toHaveURL(/\/checkout\//);
-  await page.getByRole("button", { name: /Pay/ }).click();
-  await expect(page.locator("span", { hasText: /^funded$/ })).toBeVisible();
+  await buyerPage.goto(listingURL);
+  await buyerPage.getByRole("button", { name: /Buy/ }).click();
+  await expect(buyerPage).toHaveURL(/\/checkout\//);
+  await buyerPage.getByRole("button", { name: /Pay/ }).click();
+  await expect(buyerPage.locator("span", { hasText: /^funded$/ })).toBeVisible();
 
   // 6. Seller ships.
-  await signOut(page);
-  await login(page, seller.email, seller.password, secret);
-  await openOrder(page, "seller");
-  await page.getByRole("button", { name: "Mark as shipped" }).click();
-  await expect(page.locator("span", { hasText: /^shipped$/ })).toBeVisible();
+  await openOrder(sellerPage, "seller");
+  await sellerPage.getByRole("button", { name: "Mark as shipped" }).click();
+  await expect(sellerPage.locator("span", { hasText: /^shipped$/ })).toBeVisible();
 
   // 7. Bob confirms receipt → escrow releases.
-  await signOut(page);
-  await login(page, bob.email, bob.password);
-  await openOrder(page, "buyer");
-  await page.getByRole("button", { name: /Confirm it arrived/ }).click();
-  await expect(page.locator("span", { hasText: /^completed$/ })).toBeVisible();
+  await openOrder(buyerPage, "buyer");
+  await buyerPage.getByRole("button", { name: /Confirm it arrived/ }).click();
+  await expect(buyerPage.locator("span", { hasText: /^completed$/ })).toBeVisible();
 
   // 8. Wallets reconcile: bob −PRICE, seller +90%.
-  expect(await balance(page)).toBe(bobBefore - PRICE);
-
-  await signOut(page);
-  await login(page, seller.email, seller.password, secret);
-  expect(await balance(page)).toBe(PRICE - PRICE / 10); // 90% after the 10% platform fee
+  expect(await balance(buyerPage)).toBe(bobBefore - PRICE);
+  expect(await balance(sellerPage)).toBe(PRICE - PRICE / 10); // 90% after the 10% platform fee
 });

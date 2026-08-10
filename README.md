@@ -1,6 +1,6 @@
 # Vault
 
-A compact C2C marketplace (a micro-Mercari) with three deliberately hard parts built from scratch: **identity** (an OAuth 2.0 / OIDC provider with TOTP MFA, refresh-token rotation, and session security), **money** (escrow checkout on a double-entry ledger), and **an AI listing assistant** (photograph an item, get suggested title/description/category/price band). Everything is invariant-tested, event-driven, and runs with one command.
+A compact C2C marketplace with three deliberately hard parts built from scratch: **identity** (an OAuth 2.0 / OIDC provider with TOTP MFA, refresh-token rotation, and session security), **money** (escrow checkout on a double-entry ledger), and **an AI listing assistant** (photograph an item, get suggested title/description/category/price band). Everything is invariant-tested, event-driven, and runs with one command.
 
 > **Honest framing:** this is an educational IdP. Production systems should use vetted libraries; building one from the RFCs is the point here. Simulated deliveries, synthetic data, no real money.
 

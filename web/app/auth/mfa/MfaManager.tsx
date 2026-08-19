@@ -150,9 +150,10 @@ export default function MfaManager() {
           </p>
           <div className="grid grid-cols-2 gap-2 rounded-control bg-fill p-3">
             {state.codes.map((c) => (
-              <code key={c} className="text-sm text-ink">
-                {c}
-              </code>
+              <div key={c} className="flex items-center justify-between gap-1">
+                <code className="text-sm text-ink">{c}</code>
+                <CopyButton value={c} label={`Copy recovery code ${c}`} />
+              </div>
             ))}
           </div>
           <Button variant="outline" onClick={() => setState({ step: "enabled" })}>

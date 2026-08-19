@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { Button, buttonVariants } from "@/components/ui/button";
 import OrderTimeline from "@/components/OrderTimeline";
 import StatusBadge from "@/components/StatusBadge";
+import Reveal from "@/components/motion/Reveal";
 import { fetchOrder, marketPost, yen } from "@/lib/api";
 import { getToken, getUser } from "@/lib/auth";
 
@@ -32,16 +34,9 @@ function ActionButton({
     <form action={runOrderAction}>
       <input type="hidden" name="order_id" value={orderID} />
       <input type="hidden" name="action" value={action} />
-      <button
-        type="submit"
-        className={
-          primary
-            ? "w-full rounded-[6px] bg-torii px-4 py-2.5 font-medium text-on-solid"
-            : "w-full rounded-[6px] border border-sumi-20 px-4 py-2 text-sm"
-        }
-      >
+      <Button type="submit" variant={primary ? "default" : "outline"} className="w-full">
         {label}
-      </button>
+      </Button>
     </form>
   );
 }
@@ -55,26 +50,24 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const isBuyer = user.sub === order.buyer_id;
 
   return (
-    <div className="mx-auto max-w-md">
+    <Reveal mode="mount" className="mx-auto max-w-md">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold">Order</h1>
+        <h1 className="text-xl font-bold tracking-tight text-ink">Order</h1>
         <StatusBadge status={order.status} />
       </div>
       <Link
         href={`/listing/${order.listing_id}`}
-        className="flex items-center gap-3 rounded-[8px] border border-sumi-20 bg-surface p-3"
+        className="flex items-center gap-3 rounded-card border border-line bg-surface p-3 transition-colors hover:border-line-strong"
       >
         <img
           src={order.listing_image || "https://picsum.photos/seed/vault/160/120"}
           alt=""
-          className="h-16 w-20 rounded-[6px] object-cover"
+          className="h-16 w-20 rounded-control object-cover"
         />
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium">{order.listing_title}</p>
-          <p className="money text-lg font-bold">{yen(order.price_minor)}</p>
-          <p className="text-xs text-sumi-40">
-            You are the {isBuyer ? "buyer" : "seller"}
-          </p>
+          <p className="truncate text-sm font-medium text-ink">{order.listing_title}</p>
+          <p className="money text-lg font-bold text-ink">{yen(order.price_minor)}</p>
+          <p className="text-xs text-faint">You are the {isBuyer ? "buyer" : "seller"}</p>
         </div>
       </Link>
 
@@ -84,10 +77,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
 
       <div className="mt-4 flex flex-col gap-2">
         {isBuyer && order.status === "pending_payment" ? (
-          <Link
-            href={`/checkout/${order.id}`}
-            className="w-full rounded-[6px] bg-torii px-4 py-2.5 text-center font-medium text-on-solid"
-          >
+          <Link href={`/checkout/${order.id}`} className={buttonVariants({ className: "w-full" })}>
             Go to checkout
           </Link>
         ) : null}
@@ -110,10 +100,10 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         ) : null}
       </div>
       {isBuyer && order.status === "shipped" ? (
-        <p className="mt-3 text-center text-xs text-sumi-40">
+        <p className="mt-3 text-center text-xs text-faint">
           If you don&apos;t confirm, the seller is paid automatically 72 hours after shipping.
         </p>
       ) : null}
-    </div>
+    </Reveal>
   );
 }

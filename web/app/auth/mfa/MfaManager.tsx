@@ -1,8 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
+function CopyButton({ value, label }: { value: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    await navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon-xs"
+      onClick={copy}
+      aria-label={copied ? "Copied" : label}
+    >
+      {copied ? <Check className="text-success" /> : <Copy />}
+    </Button>
+  );
+}
 
 type State =
   | { step: "loading" }
@@ -91,7 +114,10 @@ export default function MfaManager() {
             “enter a setup key”, then confirm with a code.
           </p>
           <div className="rounded-control bg-fill p-3">
-            <p className="text-xs text-faint">Secret key</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs text-faint">Secret key</p>
+              <CopyButton value={state.secret} label="Copy secret key" />
+            </div>
             <code className="break-all text-sm font-bold tracking-wider text-ink">
               {state.secret}
             </code>

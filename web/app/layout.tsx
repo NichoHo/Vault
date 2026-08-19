@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Noto_Sans_JP } from "next/font/google";
 import Link from "next/link";
 import BackLink from "@/components/BackLink";
+import StickyHeader from "@/components/motion/StickyHeader";
 import { Input } from "@/components/ui/input";
 import { buttonVariants } from "@/components/ui/button";
 import { getUser } from "@/lib/auth";
@@ -20,7 +21,7 @@ async function Header() {
   const user = await getUser();
   const navLink = "text-muted-foreground transition-colors hover:text-ink";
   return (
-    <header className="sticky top-0 z-30 border-b border-line glass">
+    <header className="border-b border-line glass">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" className="shrink-0 text-lg font-bold tracking-tight text-ink">
           Vault<span className="text-primary">.</span>
@@ -94,7 +95,9 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        <Header />
+        <StickyHeader>
+          <Header />
+        </StickyHeader>
         <main
           id="main"
           className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12 lg:px-8"

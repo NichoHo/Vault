@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { fetchCategories } from "@/lib/api";
 import { getUser } from "@/lib/auth";
+import Reveal from "@/components/motion/Reveal";
 import SellForm from "./SellForm";
 
 export default async function SellPage({
@@ -13,7 +14,7 @@ export default async function SellPage({
   const [categories, sp] = await Promise.all([fetchCategories(), searchParams]);
 
   return (
-    <div className="mx-auto max-w-lg">
+    <Reveal mode="mount" className="mx-auto max-w-lg">
       <h1 className="mb-1.5 text-xl font-bold tracking-tight text-ink">Sell an item</h1>
       <p className="mb-5 text-sm leading-6 text-muted-foreground">
         Paste a photo URL and let the assistant draft the listing. Fields it filled in keep a{" "}
@@ -21,6 +22,6 @@ export default async function SellPage({
         them.
       </p>
       <SellForm categories={categories} hadError={sp.error === "1"} />
-    </div>
+    </Reveal>
   );
 }

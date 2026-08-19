@@ -162,25 +162,3 @@
     scroll-behavior: auto !important;
   }
 }
-
-/* ---- Legacy Ishidatami aliases -------------------------------------------
-   Pages not yet restyled (search, listing, checkout, orders, wallet, auth/*,
-   admin) still reference these names. Mapped onto the new palette so they
-   inherit the redesign without a rename. Delete this block once every page
-   under web/app is migrated to the semantic names above. */
-@theme {
-  --color-paper: var(--color-canvas);
-  --color-torii: var(--color-primary);
-  --color-indigo: var(--color-primary);
-  --color-moss: var(--color-success);
-  --color-kohaku: var(--color-warning);
-  --color-sumi-60: var(--color-muted-foreground);
-  --color-sumi-40: var(--color-faint);
-  --color-sumi-20: var(--color-line);
-  --color-sumi-10: var(--color-fill);
-}
-
-/* legacy hero seam, remapped to the brand hue (kept in case any page uses it) */
-@utility rule-torii {
-  border-top: 2px solid var(--color-primary);
-}

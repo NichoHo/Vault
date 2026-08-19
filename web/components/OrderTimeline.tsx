@@ -17,24 +17,22 @@ export default function OrderTimeline({ order }: { order: Order }) {
         return (
           <li key={s.key} className="flex gap-3">
             <div className="flex flex-col items-center">
-              <span
-                className={`mt-1 h-3 w-3 rounded-full ${done ? "bg-moss" : "bg-sumi-20"}`}
-              />
+              <span className={`mt-1 h-3 w-3 rounded-full ${done ? "bg-success" : "bg-line"}`} />
               {i < steps.length - 1 ? (
-                <span className={`w-0.5 flex-1 ${done ? "bg-moss" : "bg-sumi-20"}`} />
+                <span className={`w-0.5 flex-1 ${done ? "bg-success" : "bg-line"}`} />
               ) : null}
             </div>
             <div className="pb-5">
-              <p className={`text-sm font-medium ${done ? "" : "text-sumi-40"}`}>{s.label}</p>
-              {at ? (
-                <p className="text-xs text-sumi-40">{new Date(at).toLocaleString()}</p>
-              ) : null}
+              <p className={`text-sm font-medium ${done ? "text-ink" : "text-faint"}`}>
+                {s.label}
+              </p>
+              {at ? <p className="text-xs text-faint">{new Date(at).toLocaleString()}</p> : null}
             </div>
           </li>
         );
       })}
       {dead ? (
-        <li className="rounded-[6px] bg-kohaku/10 px-3 py-2 text-sm text-kohaku">
+        <li className="rounded-control bg-warning-tint px-3 py-2 text-sm text-warning">
           Order {order.status}
           {order.status === "refunded" ? ". The buyer got their money back." : "."}
         </li>

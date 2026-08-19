@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 export default function ConsentForm({
   clientId,
@@ -29,17 +30,10 @@ export default function ConsentForm({
 
   return (
     <div className="flex gap-3">
-      <button
-        onClick={approve}
-        disabled={busy}
-        className="flex-1 rounded-[6px] bg-indigo px-3 py-2 text-sm font-medium text-on-solid disabled:opacity-50"
-      >
+      <Button onClick={approve} disabled={busy} className="flex-1">
         {busy ? "Allowing…" : "Allow"}
-      </button>
-      <a
-        href="/"
-        className="flex-1 rounded-[6px] border border-sumi-20 px-3 py-2 text-center text-sm"
-      >
+      </Button>
+      <a href="/" className={buttonVariants({ variant: "outline", className: "flex-1" })}>
         Deny
       </a>
     </div>

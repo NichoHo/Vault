@@ -21,7 +21,7 @@ export default async function ConsentPage({
   const scopes = (sp.scope ?? "openid profile").split(" ").filter(Boolean);
   return (
     <IdCard title="Authorize access">
-      <p className="mb-3 text-sm text-sumi-60">
+      <p className="mb-3 text-sm text-muted-foreground">
         <span className="font-medium text-ink">{sp.client_name ?? sp.client_id}</span> wants
         to:
       </p>

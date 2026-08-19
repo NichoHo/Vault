@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import Reveal from "@/components/motion/Reveal";
 import StatusBadge from "@/components/StatusBadge";
 import { fetchCategories, fetchListing, marketPost, yen } from "@/lib/api";
 import { getToken, getUser } from "@/lib/auth";
@@ -35,31 +36,34 @@ export default async function ListingPage({
 
   return (
     <div className="grid gap-8 md:grid-cols-2">
-      <div className="overflow-hidden rounded-[8px] border border-sumi-20 bg-sumi-10 md:sticky md:top-20 md:self-start">
+      <Reveal
+        mode="mount"
+        className="overflow-hidden rounded-panel border border-line bg-fill md:sticky md:top-20 md:self-start"
+      >
         <img
           src={listing.image_url || "https://picsum.photos/seed/vault/800/600"}
           alt={listing.title}
           className="aspect-[4/3] w-full object-cover"
         />
-      </div>
-      <div>
+      </Reveal>
+      <Reveal mode="mount" delay={0.1}>
         <div className="mb-2 flex items-center gap-2">
           <StatusBadge status={listing.status} />
-          {category ? <span className="text-xs text-sumi-40">{category.name}</span> : null}
+          {category ? <span className="text-xs text-faint">{category.name}</span> : null}
         </div>
-        <h1 className="text-2xl font-bold">{listing.title}</h1>
-        <p className="money mt-2 text-3xl font-bold">{yen(listing.price_minor)}</p>
-        <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-sumi-60">
+        <h1 className="text-2xl font-bold tracking-tight text-ink">{listing.title}</h1>
+        <p className="money mt-2 text-3xl font-bold text-ink">{yen(listing.price_minor)}</p>
+        <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
           {listing.description || "No description."}
         </p>
-        <div className="mt-6 rounded-[8px] border border-sumi-20 bg-surface p-4 text-sm">
-          <p className="text-sumi-40">Seller</p>
-          <p className="font-medium">
+        <div className="mt-6 rounded-card border border-line bg-surface p-4 text-sm">
+          <p className="text-faint">Seller</p>
+          <p className="font-medium text-ink">
             {isOwner ? "You" : listing.seller_id.slice(0, 8) + "…"}
           </p>
         </div>
         {sp.error === "unavailable" ? (
-          <p className="mt-4 rounded-[6px] bg-kohaku/10 px-3 py-2 text-sm text-kohaku">
+          <p className="mt-4 rounded-control bg-warning-tint px-3 py-2 text-sm text-warning">
             Someone else got there first. This listing is no longer available.
           </p>
         ) : null}
@@ -68,17 +72,17 @@ export default async function ListingPage({
             <input type="hidden" name="listing_id" value={listing.id} />
             <button
               type="submit"
-              className="mt-6 w-full rounded-[6px] bg-torii px-4 py-2.5 font-medium text-on-solid transition-opacity hover:opacity-90"
+              className="mt-6 w-full rounded-control bg-primary px-4 py-2.5 font-semibold text-on-solid shadow-sm transition-colors hover:bg-primary-strong"
             >
               Buy with escrow protection
             </button>
-            <p className="mt-2 text-center text-xs text-sumi-40">
+            <p className="mt-2 text-center text-xs text-faint">
               We hold your payment until you confirm the item arrived. Only then does the
               seller get paid.
             </p>
           </form>
         ) : (
-          <p className="mt-6 text-center text-sm text-sumi-40">
+          <p className="mt-6 text-center text-sm text-faint">
             {isOwner
               ? "This is your listing."
               : listing.status === "sold"
@@ -88,7 +92,7 @@ export default async function ListingPage({
                   : "This item is not for sale right now."}
           </p>
         )}
-      </div>
+      </Reveal>
     </div>
   );
 }

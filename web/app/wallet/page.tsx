@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import Reveal from "@/components/motion/Reveal";
 import ServiceUnavailable from "@/components/ServiceUnavailable";
 import { fetchWallet, payDeposit, yen, type Wallet } from "@/lib/api";
 import { getToken } from "@/lib/auth";
@@ -36,7 +39,7 @@ export default async function WalletPage() {
   if (unreachable) {
     return (
       <div className="mx-auto max-w-md">
-        <h1 className="mb-4 text-xl font-bold">Wallet</h1>
+        <h1 className="mb-4 text-xl font-bold tracking-tight text-ink">Wallet</h1>
         <ServiceUnavailable
           service="wallet"
           detail="Your balance and history can’t be loaded right now. This is not a zero balance, and no funds are affected."
@@ -47,37 +50,37 @@ export default async function WalletPage() {
   if (!wallet) redirect("/auth/start?next=/wallet");
 
   return (
-    <div className="mx-auto max-w-md">
-      <h1 className="mb-4 text-xl font-bold">Wallet</h1>
-      <div className="rounded-[8px] border border-sumi-20 bg-surface p-6 text-center">
-        <p className="text-sm text-sumi-60">Balance</p>
-        <p className="money text-4xl font-bold">{yen(wallet.balance_minor)}</p>
-        <form action={topUpAction} className="mt-4">
-          <button className="rounded-[6px] bg-indigo px-4 py-2 text-sm font-medium text-on-solid">
-            Add ¥50,000 demo funds
-          </button>
-        </form>
-      </div>
+    <Reveal mode="mount" className="mx-auto max-w-md">
+      <h1 className="mb-4 text-xl font-bold tracking-tight text-ink">Wallet</h1>
+      <Card>
+        <CardContent className="text-center">
+          <p className="text-sm text-muted-foreground">Balance</p>
+          <p className="money text-4xl font-bold text-ink">{yen(wallet.balance_minor)}</p>
+          <form action={topUpAction} className="mt-4">
+            <Button type="submit">Add ¥50,000 demo funds</Button>
+          </form>
+        </CardContent>
+      </Card>
 
-      <h2 className="mb-2 mt-6 text-sm font-bold text-sumi-60">
+      <h2 className="mb-2 mt-6 text-sm font-bold text-muted-foreground">
         Every payment in and out of your account
       </h2>
       {wallet.entries.length === 0 ? (
-        <p className="text-sm text-sumi-60">No activity yet.</p>
+        <p className="text-sm text-muted-foreground">No activity yet.</p>
       ) : (
-        <ul className="divide-y divide-sumi-20 rounded-[8px] border border-sumi-20 bg-surface">
+        <ul className="divide-y divide-line rounded-card border border-line bg-surface">
           {wallet.entries.map((e, i) => {
             const orderID = e.reference.startsWith("order:") ? e.reference.slice(6) : null;
             return (
               <li key={i} className="flex items-center justify-between px-4 py-2.5 text-sm">
                 <div>
-                  <p>{kindLabel[e.kind] ?? e.kind}</p>
-                  <p className="text-xs text-sumi-40">
+                  <p className="text-ink">{kindLabel[e.kind] ?? e.kind}</p>
+                  <p className="text-xs text-faint">
                     {new Date(e.created_at).toLocaleString()}
                     {orderID ? (
                       <>
                         {" · "}
-                        <Link href={`/orders/${orderID}`} className="text-indigo underline">
+                        <Link href={`/orders/${orderID}`} className="text-primary underline">
                           order
                         </Link>
                       </>
@@ -85,7 +88,7 @@ export default async function WalletPage() {
                   </p>
                 </div>
                 <span
-                  className={`money font-medium ${e.amount_minor > 0 ? "text-moss" : "text-danger"}`}
+                  className={`money font-medium ${e.amount_minor > 0 ? "text-success" : "text-danger"}`}
                 >
                   {e.amount_minor > 0 ? "+" : ""}
                   {yen(e.amount_minor).replace("¥-", "-¥")}
@@ -95,6 +98,6 @@ export default async function WalletPage() {
           })}
         </ul>
       )}
-    </div>
+    </Reveal>
   );
 }

@@ -1,11 +1,20 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import type { Category } from "@/lib/api";
 import { createListingAction, suggestAction, type Suggestion } from "./actions";
-
-const base =
-  "rounded-control border bg-surface text-ink px-3.5 py-2.5 text-sm outline-none transition-colors placeholder:text-faint focus:border-primary";
 
 type Fields = { title: string; description: string; category_id: string; price: string };
 const EMPTY: Fields = { title: "", description: "", category_id: "", price: "" };
@@ -19,7 +28,7 @@ export default function SellForm({
 }) {
   const [imageUrl, setImageUrl] = useState("");
   const [fields, setFields] = useState<Fields>(EMPTY);
-  // fields currently showing an unedited AI suggestion (the indigo border cue)
+  // fields currently showing an unedited AI suggestion (the primary-colored edge cue)
   const [aiFields, setAiFields] = useState<Set<keyof Fields>>(new Set());
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
   const [note, setNote] = useState("");
@@ -73,8 +82,12 @@ export default function SellForm({
     .map((f) => (f === "category_id" ? "category" : f))
     .join(",");
 
-  const ai = (name: keyof Fields) =>
-    `${base} ${aiFields.has(name) ? "border-l-4 border-primary" : "border-line"}`;
+  const ai = (name: keyof Fields) => (aiFields.has(name) ? "border-l-4 border-primary" : "");
+
+  const categoryItems: { label: string; value: string | null }[] = [
+    { label: "No category", value: null },
+    ...categories.map((c) => ({ label: c.name, value: String(c.id) })),
+  ];
 
   return (
     <form action={createListingAction} className="flex flex-col gap-3">
@@ -83,7 +96,7 @@ export default function SellForm({
           Could not create the listing. Check the fields and try again.
         </p>
       ) : null}
-      <input
+      <Input
         name="title"
         required
         maxLength={120}
@@ -94,20 +107,20 @@ export default function SellForm({
         className={ai("title")}
       />
       <div className="flex gap-2">
-        <input
+        <Input
           name="image_url"
           type="url"
           value={imageUrl}
           onChange={(e) => setImageUrl(e.target.value)}
           aria-label="Photo URL"
           placeholder="Photo URL"
-          className={`${base} border-line flex-1`}
+          className="flex-1"
         />
-        <button
+        <Button
           type="button"
+          variant="copilot"
           onClick={requestSuggestion}
           disabled={pending || (!imageUrl && !fields.title)}
-          className="inline-flex shrink-0 items-center gap-2 rounded-control bg-primary px-4 py-2.5 text-sm font-semibold text-on-solid shadow-sm transition-colors hover:bg-primary-strong disabled:opacity-45 disabled:shadow-none disabled:hover:bg-primary"
         >
           <svg
             viewBox="0 0 24 24"
@@ -116,21 +129,26 @@ export default function SellForm({
             strokeWidth="1.6"
             strokeLinejoin="round"
             aria-hidden="true"
-            className={`h-4 w-4 ${pending ? "animate-pulse" : ""}`}
+            data-icon="inline-start"
+            className={pending ? "animate-pulse" : ""}
           >
             <path d="M10.5 3.5 12.3 8.2 17 10l-4.7 1.8-1.8 4.7-1.8-4.7L4 10l4.7-1.8z" />
             <path d="M17.5 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z" />
           </svg>
           {pending ? "Suggesting…" : "Suggest"}
-        </button>
+        </Button>
       </div>
       <p aria-live="polite" className="text-xs leading-5 text-faint empty:hidden">
         {note}
       </p>
       {imageUrl ? (
-        <img src={imageUrl} alt="Listing photo preview" className="max-h-48 rounded-card object-cover" />
+        <img
+          src={imageUrl}
+          alt="Listing photo preview"
+          className="max-h-48 rounded-card object-cover"
+        />
       ) : null}
-      <textarea
+      <Textarea
         name="description"
         rows={4}
         aria-label="Description"
@@ -140,9 +158,9 @@ export default function SellForm({
         className={ai("description")}
       />
       <div className="flex gap-3">
-        <label className="flex flex-1 items-center gap-2 text-sm text-muted-foreground">
-          ¥
-          <input
+        <InputGroup className={`flex-1 ${ai("price")}`}>
+          <InputGroupAddon>¥</InputGroupAddon>
+          <InputGroupInput
             name="price"
             type="number"
             required
@@ -151,39 +169,28 @@ export default function SellForm({
             placeholder="Price (yen)"
             value={fields.price}
             onChange={(e) => setField("price", e.target.value)}
-            className={`${ai("price")} money w-full`}
+            className="money"
           />
-        </label>
-        {/* appearance-none + our own chevron: the native arrow sits hard against
-            the right edge, which reads unbalanced against the 14px text inset. */}
-        <div className="relative flex-1">
-          <select
-            name="category_id"
-            aria-label="Category"
-            value={fields.category_id}
-            onChange={(e) => setField("category_id", e.target.value)}
-            className={`${ai("category_id")} w-full appearance-none pr-10`}
-          >
-            <option value="">No category</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-            className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-          >
-            <path d="m6 9.5 6 6 6-6" />
-          </svg>
-        </div>
+        </InputGroup>
+        <Select
+          name="category_id"
+          items={categoryItems}
+          value={fields.category_id || null}
+          onValueChange={(v) => setField("category_id", v ?? "")}
+        >
+          <SelectTrigger aria-label="Category" className={`w-full flex-1 ${ai("category_id")}`}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {categoryItems.map((item) => (
+                <SelectItem key={item.value ?? "none"} value={item.value}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
       {suggestion?.price_low != null && suggestion?.price_high != null ? (
         <p className="money text-xs text-faint">
@@ -194,12 +201,9 @@ export default function SellForm({
 
       <input type="hidden" name="suggestion_id" value={suggestion?.suggestion_id ?? ""} />
       <input type="hidden" name="accepted_fields" value={suggestion ? acceptedFields : ""} />
-      <button
-        type="submit"
-        className="mt-1 rounded-control bg-primary px-4 py-2.5 text-sm font-semibold text-on-solid shadow-sm transition-colors hover:bg-primary-strong"
-      >
+      <Button type="submit" className="mt-1">
         List it
-      </button>
+      </Button>
     </form>
   );
 }

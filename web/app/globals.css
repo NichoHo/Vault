@@ -1,72 +1,98 @@
 @import "tailwindcss";
-
-/* Dark mode is driven by <html data-theme>, not the OS media query, so the
-   header toggle can override the system preference. Redefining the `dark:`
-   variant keeps utilities like `dark:hidden` in sync with it. */
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
 /* ============================================================================
-   Vault design system: "Slate" (v2). Supersedes "Ishidatami".
-   Sleek, high-trust, light + dark. Depth comes from a neutral surface scale +
-   soft layered elevation + glass on sticky chrome, not heavy shadows.
-   Legacy Ishidatami token names are aliased at the bottom so the ~17 pages not
-   yet restyled inherit the new palette without a repo-wide rename.
+   Vault design system: "Nova" (v4). Supersedes "Slate Enterprise (v3)".
+   Light-only, white canvas + vivid orange brand. Depth comes from a neutral
+   surface scale + soft layered elevation + glass on sticky chrome, not heavy
+   shadows. Legacy Ishidatami token names are aliased at the bottom so the
+   pages not yet restyled inherit the new palette without a repo-wide rename.
    ============================================================================ */
 
 @theme {
-  /* ---- Slate Enterprise (v3) Surface Scale ----------------------------- */
-  --color-canvas: #f8fafc; /* deep workspace canvas */
-  --color-surface: #ffffff; /* primary card & content panels */
-  --color-surface-2: #f1f5f9; /* elevated rows & active sidebars */
-  --color-surface-3: #e2e8f0; /* raised control fills & sub-cards */
+  /* ---- Vault surface scale ------------------------------------------------ */
+  --color-canvas: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-2: #f7f7f5; /* soft warm-gray section backgrounds */
+  --color-surface-3: #efeeea; /* hover / raised rows */
 
-  /* ---- Ink & text ramp (all AA on surface/canvas) ------------------------ */
-  --color-ink: #0f172a; /* primary text */
-  --color-ink-2: #334155; /* secondary text */
-  --color-muted: #64748b; /* tertiary / captions (>=4.5:1 on white) */
-  --color-faint: #94a3b8; /* placeholder / disabled */
+  /* ---- Vault ink & text ramp ----------------------------------------------- */
+  --color-ink: #171412; /* near-black, warm */
+  --color-ink-2: #46423d;
+  --color-muted-foreground: #78736c; /* was --color-muted; renamed so shadcn's own `muted` (a background) doesn't collide */
+  --color-faint: #a8a29a;
 
-  /* ---- Lines & fills ----------------------------------------------------- */
-  --color-line: #e2e8f0; /* hairline borders */
-  --color-line-strong: #cbd5e1; /* hover borders, dividers */
-  --color-fill: #f1f5f9; /* chip bg, skeleton, code, subtle fill */
+  /* ---- Vault lines & fills -------------------------------------------------- */
+  --color-line: #e8e6e1;
+  --color-line-strong: #d6d2ca;
+  --color-fill: #f4f3ef;
 
-  /* ---- Accent (Electric Indigo Trust Hue): links, CTA, focus, security ---- */
-  --color-accent: #6366f1;
-  --color-accent-strong: #4f46e5; /* hover / pressed */
-  --color-accent-tint: #eef2ff; /* accent-tinted surface */
+  /* ---- Vault brand: vivid orange (shadcn's "primary" slot) ------------------ */
+  --color-primary: #fe5922; /* was --color-accent */
+  --color-primary-strong: #d8430f; /* hover / pressed; was --color-accent-strong */
+  --color-primary-tint: #fef3ec; /* was --color-accent-tint */
   --color-on-solid: #ffffff;
 
-  /* ---- Semantics & Enterprise Trust Badging ------------------------------ */
-  --color-success: #10b981; /* escrow released / verified paid */
-  --color-success-tint: #ecfdf5;
-  --color-warning: #f59e0b; /* pending inspection / holds */
+  /* ---- Vault semantics ------------------------------------------------------ */
+  --color-success: #16a34a;
+  --color-success-tint: #effbf3;
+  --color-warning: #ca8a04; /* shifted gold rather than amber so it reads distinct from the orange brand */
   --color-warning-tint: #fffbeb;
-  --color-danger: #ef4444; /* errors / disputes / destructive */
+  --color-danger: #dc2626;
   --color-danger-tint: #fef2f2;
-  --color-copilot: #8b5cf6; /* AI listing assistant co-creation hue */
+  --color-copilot: #7c3aed; /* AI listing-assistant hue, kept distinct from the brand */
   --color-copilot-tint: #f5f3ff;
 
-  /* ---- Type -------------------------------------------------------------- */
-  --font-sans: var(--font-inter), var(--font-noto), system-ui, sans-serif;
+  /* ---- Type ------------------------------------------------------------------ */
+  --font-sans: var(--font-plus-jakarta), var(--font-noto), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), var(--font-jetbrains), monospace;
 
-  /* ---- Radii (enterprise precision) -------------------------------------- */
-  --radius-control: 8px;
-  --radius-card: 12px;
-  --radius-panel: 16px;
+  /* ---- Radii ------------------------------------------------------------------ */
+  --radius-control: 10px;
+  --radius-card: 18px;
+  --radius-panel: 24px;
+  --radius: 10px; /* shadcn's single-knob radius */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
 
-  /* ---- Elevation: soft, ambient glows & layered enterprise depth --------- */
-  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
-  --shadow-md: 0 4px 6px -1px rgb(15 23 42 / 0.05), 0 10px 15px -3px rgb(15 23 42 / 0.08);
-  --shadow-lg: 0 10px 25px -5px rgb(15 23 42 / 0.08), 0 20px 48px -12px rgb(15 23 42 / 0.12);
-  --shadow-glow: 0 0 20px -5px rgba(99, 102, 241, 0.25);
-  --shadow-elevated: var(--shadow-lg); /* legacy name (modals/toasts) */
+  /* ---- Elevation: soft, ambient glows & layered depth -------------------------- */
+  --shadow-sm: 0 1px 2px rgb(23 20 17 / 0.04), 0 1px 3px rgb(23 20 17 / 0.06);
+  --shadow-md: 0 4px 6px -1px rgb(23 20 17 / 0.05), 0 10px 15px -3px rgb(23 20 17 / 0.08);
+  --shadow-lg: 0 10px 25px -5px rgb(23 20 17 / 0.08), 0 20px 48px -12px rgb(23 20 17 / 0.12);
+  --shadow-glow: 0 0 20px -5px rgba(254, 89, 34, 0.25);
+  --shadow-elevated: var(--shadow-lg);
+
+  /* ---- shadcn/ui reserved tokens: read only by components/ui/* source files.
+     Aliased onto the Vault tokens above so Button/Input/etc. inherit this
+     palette automatically. `accent`/`accent-foreground`/`muted` are shadcn's
+     own neutral hover-surface concept, NOT the brand color -- deliberately
+     NOT aliased to `primary`, so a hovered dropdown/select item reads as a
+     soft neutral highlight rather than a flash of solid brand orange. -------- */
+  --color-background: var(--color-canvas);
+  --color-foreground: var(--color-ink);
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-ink);
+  --color-popover: var(--color-surface);
+  --color-popover-foreground: var(--color-ink);
+  --color-primary-foreground: var(--color-on-solid);
+  --color-secondary: var(--color-surface-2);
+  --color-secondary-foreground: var(--color-ink);
+  --color-muted: var(--color-surface-2);
+  --color-accent: var(--color-fill);
+  --color-accent-foreground: var(--color-ink);
+  --color-destructive: var(--color-danger);
+  --color-destructive-foreground: #ffffff;
+  --color-border: var(--color-line);
+  --color-input: var(--color-line-strong);
+  --color-ring: var(--color-primary);
 }
 
 @layer base {
   html {
-    color-scheme: light; /* flipped to dark by the data-theme block below */
+    color-scheme: light;
   }
   body {
     background: var(--color-canvas);
@@ -74,9 +100,9 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
-  /* accent is the focus/selection hue */
+  /* primary is the focus/selection hue */
   ::selection {
-    background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 20%, transparent);
   }
   /* interactive elements: kill the tap delay / double-tap-zoom and grey flash */
   a,
@@ -87,6 +113,10 @@
   [role="button"] {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+  }
+  /* default border color for shadcn components that use a bare `border` utility */
+  * {
+    border-color: var(--color-border);
   }
 }
 
@@ -105,10 +135,10 @@
   -webkit-backdrop-filter: blur(14px) saturate(1.5);
 }
 
-/* Soft accent-tinted wash for hero / feature surfaces (depth without a shadow). */
+/* Soft brand-tinted wash for hero / feature surfaces (depth without a shadow). */
 @utility wash-accent {
   background:
-    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--color-accent) 9%, transparent) 0%, transparent 55%),
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--color-primary) 9%, transparent) 0%, transparent 55%),
     radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--color-success) 7%, transparent) 0%, transparent 50%),
     var(--color-surface);
 }
@@ -117,7 +147,7 @@
    tie on specificity, win on source order). Outline (not box-shadow) so it
    survives overflow-hidden and follows each element's own border-radius. */
 :focus-visible {
-  outline: 2px solid var(--color-accent) !important;
+  outline: 2px solid var(--color-primary) !important;
   outline-offset: 2px;
 }
 
@@ -133,73 +163,23 @@
 }
 
 /* ---- Legacy Ishidatami aliases -------------------------------------------
-   Pages not yet restyled (search, orders, wallet, checkout, auth/*, admin,
-   sell, StatusBadge, OrderTimeline, IdCard) still reference these names.
-   Mapped onto the new palette so they inherit the restyle without a rename.
-   New marketplace code uses the semantic names above. */
+   Pages not yet restyled (search, listing, checkout, orders, wallet, auth/*,
+   admin) still reference these names. Mapped onto the new palette so they
+   inherit the redesign without a rename. Delete this block once every page
+   under web/app is migrated to the semantic names above. */
 @theme {
   --color-paper: var(--color-canvas);
-  --color-torii: var(--color-accent);
-  --color-indigo: var(--color-accent);
+  --color-torii: var(--color-primary);
+  --color-indigo: var(--color-primary);
   --color-moss: var(--color-success);
   --color-kohaku: var(--color-warning);
-  --color-sumi-60: var(--color-muted);
+  --color-sumi-60: var(--color-muted-foreground);
   --color-sumi-40: var(--color-faint);
   --color-sumi-20: var(--color-line);
   --color-sumi-10: var(--color-fill);
 }
 
-/* legacy hero seam, remapped to the accent hue (kept in case any page uses it) */
+/* legacy hero seam, remapped to the brand hue (kept in case any page uses it) */
 @utility rule-torii {
-  border-top: 2px solid var(--color-accent);
-}
-
-/* ---- Dark theme --------------------------------------------------------
-   Applied by attribute, not media query: the inline script in layout.tsx sets
-   data-theme from localStorage (falling back to the OS preference) before
-   first paint, and ThemeToggle rewrites it on click. One selector, so the
-   toggle and the system default can't drift apart.
-
-   Only the base tokens are overridden. The legacy aliases above resolve
-   through var(), so they follow automatically. Components need no `dark:`
-   variants because they all reference semantic tokens.
-
-   The solids (accent/success/warning/danger) get LIGHTER here so link and
-   status text clears 4.5:1 on a dark canvas; `on-solid` flips to near-black
-   so buttons and badges stay legible. Shadows go darker than the canvas,
-   since a light shadow on a dark surface reads as fog, not depth. */
-:root[data-theme="dark"] {
-  color-scheme: dark; /* native scrollbars, form controls, autofill */
-  --color-canvas: #090d16;
-  --color-surface: #111726;
-  --color-surface-2: #182032;
-  --color-surface-3: #202b42;
-
-  --color-ink: #f1f5f9;
-  --color-ink-2: #cbd5e1;
-  --color-muted: #94a3b8;
-  --color-faint: #64748b;
-
-  --color-line: #1e293b;
-  --color-line-strong: #334155;
-  --color-fill: #1e293b;
-
-  --color-accent: #818cf8;
-  --color-accent-strong: #a5b4fc;
-  --color-accent-tint: #1e1b4b;
-  --color-on-solid: #090d16;
-
-  --color-success: #34d399;
-  --color-success-tint: #064e3b;
-  --color-warning: #fbbf24;
-  --color-warning-tint: #451a03;
-  --color-danger: #f87171;
-  --color-danger-tint: #450a0a;
-  --color-copilot: #a78bfa;
-  --color-copilot-tint: #2e1065;
-
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.3);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 10px 15px -3px rgb(0 0 0 / 0.5);
-  --shadow-lg: 0 10px 25px -5px rgb(0 0 0 / 0.45), 0 20px 48px -12px rgb(0 0 0 / 0.6);
-  --shadow-glow: 0 0 24px -4px rgba(129, 140, 248, 0.3);
+  border-top: 2px solid var(--color-primary);
 }

@@ -29,9 +29,9 @@ export default async function Home() {
           listing from a photo.
         </p>
         <div className="mt-6 flex flex-wrap gap-2 text-xs font-medium">
-          <span className="rounded-full bg-accent-tint px-3 py-1 text-accent">OIDC + TOTP MFA</span>
+          <span className="rounded-full bg-primary-tint px-3 py-1 text-primary">OIDC + TOTP MFA</span>
           <span className="rounded-full bg-success-tint px-3 py-1 text-success">Escrow ledger</span>
-          <span className="rounded-full bg-warning-tint px-3 py-1 text-warning">
+          <span className="rounded-full bg-copilot-tint px-3 py-1 text-copilot">
             AI-assisted selling
           </span>
         </div>
@@ -44,7 +44,7 @@ export default async function Home() {
           </Link>
           <Link
             href="/sell"
-            className="rounded-control bg-accent px-5 py-2.5 text-sm font-semibold text-on-solid shadow-sm transition-colors hover:bg-accent-strong"
+            className="rounded-control bg-primary px-5 py-2.5 text-sm font-semibold text-on-solid shadow-sm transition-colors hover:bg-primary-strong"
           >
             Sell an item
           </Link>
@@ -58,7 +58,7 @@ export default async function Home() {
           <h2 className="text-xl font-semibold tracking-tight text-ink">Fresh listings</h2>
           <Link
             href="/search"
-            className="text-sm font-medium text-accent transition-colors hover:text-accent-strong"
+            className="text-sm font-medium text-primary transition-colors hover:text-primary-strong"
           >
             View all →
           </Link>

@@ -12,7 +12,7 @@ export default function BackLink() {
   return (
     <Link
       href="/"
-      className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-muted transition-colors hover:text-ink"
+      className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-ink"
     >
       <span aria-hidden="true">←</span> Back to marketplace
     </Link>

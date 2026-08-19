@@ -11,7 +11,7 @@ export default async function CategoryChips() {
         <Link
           key={c.id}
           href={`/search?category=${c.id}`}
-          className="shrink-0 rounded-full border border-line bg-surface px-4 py-2 text-sm font-medium text-muted transition-colors hover:border-accent hover:bg-accent-tint hover:text-accent"
+          className="shrink-0 rounded-full border border-line bg-surface px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:bg-primary-tint hover:text-primary"
         >
           {c.name}
         </Link>

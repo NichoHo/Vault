@@ -11,7 +11,7 @@ export default function ServiceUnavailable({
   return (
     <div className="rounded-card border border-line bg-surface p-10 text-center">
       <p className="text-sm font-medium text-ink">Can’t reach the {service} service.</p>
-      <p className="mx-auto mt-1.5 max-w-md text-sm leading-6 text-muted">
+      <p className="mx-auto mt-1.5 max-w-md text-sm leading-6 text-muted-foreground">
         {detail ??
           "This is a connection problem, not missing data. Nothing has been lost, so try again in a moment."}
       </p>

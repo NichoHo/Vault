@@ -5,7 +5,7 @@ import type { Category } from "@/lib/api";
 import { createListingAction, suggestAction, type Suggestion } from "./actions";
 
 const base =
-  "rounded-control border bg-surface text-ink px-3.5 py-2.5 text-sm outline-none transition-colors placeholder:text-faint focus:border-accent";
+  "rounded-control border bg-surface text-ink px-3.5 py-2.5 text-sm outline-none transition-colors placeholder:text-faint focus:border-primary";
 
 type Fields = { title: string; description: string; category_id: string; price: string };
 const EMPTY: Fields = { title: "", description: "", category_id: "", price: "" };
@@ -74,7 +74,7 @@ export default function SellForm({
     .join(",");
 
   const ai = (name: keyof Fields) =>
-    `${base} ${aiFields.has(name) ? "border-l-4 border-accent" : "border-line"}`;
+    `${base} ${aiFields.has(name) ? "border-l-4 border-primary" : "border-line"}`;
 
   return (
     <form action={createListingAction} className="flex flex-col gap-3">
@@ -107,7 +107,7 @@ export default function SellForm({
           type="button"
           onClick={requestSuggestion}
           disabled={pending || (!imageUrl && !fields.title)}
-          className="inline-flex shrink-0 items-center gap-2 rounded-control bg-accent px-4 py-2.5 text-sm font-semibold text-on-solid shadow-sm transition-colors hover:bg-accent-strong disabled:opacity-45 disabled:shadow-none disabled:hover:bg-accent"
+          className="inline-flex shrink-0 items-center gap-2 rounded-control bg-primary px-4 py-2.5 text-sm font-semibold text-on-solid shadow-sm transition-colors hover:bg-primary-strong disabled:opacity-45 disabled:shadow-none disabled:hover:bg-primary"
         >
           <svg
             viewBox="0 0 24 24"
@@ -140,7 +140,7 @@ export default function SellForm({
         className={ai("description")}
       />
       <div className="flex gap-3">
-        <label className="flex flex-1 items-center gap-2 text-sm text-muted">
+        <label className="flex flex-1 items-center gap-2 text-sm text-muted-foreground">
           ¥
           <input
             name="price"
@@ -179,7 +179,7 @@ export default function SellForm({
             strokeLinecap="round"
             strokeLinejoin="round"
             aria-hidden="true"
-            className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+            className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
           >
             <path d="m6 9.5 6 6 6-6" />
           </svg>
@@ -196,7 +196,7 @@ export default function SellForm({
       <input type="hidden" name="accepted_fields" value={suggestion ? acceptedFields : ""} />
       <button
         type="submit"
-        className="mt-1 rounded-control bg-accent px-4 py-2.5 text-sm font-semibold text-on-solid shadow-sm transition-colors hover:bg-accent-strong"
+        className="mt-1 rounded-control bg-primary px-4 py-2.5 text-sm font-semibold text-on-solid shadow-sm transition-colors hover:bg-primary-strong"
       >
         List it
       </button>

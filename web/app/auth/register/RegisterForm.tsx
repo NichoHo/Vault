@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function RegisterForm({ returnTo }: { returnTo: string }) {
   const [error, setError] = useState("");
@@ -32,7 +34,7 @@ export default function RegisterForm({ returnTo }: { returnTo: string }) {
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-3">
-      <input
+      <Input
         name="email"
         type="email"
         required
@@ -40,9 +42,8 @@ export default function RegisterForm({ returnTo }: { returnTo: string }) {
         spellCheck={false}
         aria-label="Email"
         placeholder="Email"
-        className="rounded-[6px] border border-sumi-20 px-3 py-2 text-sm outline-none focus:border-indigo"
       />
-      <input
+      <Input
         name="handle"
         required
         minLength={3}
@@ -52,9 +53,8 @@ export default function RegisterForm({ returnTo }: { returnTo: string }) {
         spellCheck={false}
         aria-label="Handle"
         placeholder="Handle (a-z, 0-9, _)"
-        className="rounded-[6px] border border-sumi-20 px-3 py-2 text-sm outline-none focus:border-indigo"
       />
-      <input
+      <Input
         name="password"
         type="password"
         required
@@ -62,23 +62,18 @@ export default function RegisterForm({ returnTo }: { returnTo: string }) {
         autoComplete="new-password"
         aria-label="Password"
         placeholder="Password (8+ characters)"
-        className="rounded-[6px] border border-sumi-20 px-3 py-2 text-sm outline-none focus:border-indigo"
       />
       <p aria-live="polite" className="text-sm text-danger empty:hidden">
         {error}
       </p>
-      <button
-        type="submit"
-        disabled={busy}
-        className="rounded-[6px] bg-indigo px-3 py-2 text-sm font-medium text-on-solid disabled:opacity-50"
-      >
+      <Button type="submit" disabled={busy}>
         {busy ? "Creating account…" : "Create account"}
-      </button>
-      <p className="text-center text-sm text-sumi-60">
+      </Button>
+      <p className="text-center text-sm text-muted-foreground">
         Have an account?{" "}
         <Link
           href={`/auth/login?return_to=${encodeURIComponent(returnTo)}`}
-          className="text-indigo underline"
+          className="text-primary underline"
         >
           Sign in
         </Link>

@@ -1,3 +1,4 @@
+import { Store } from "lucide-react";
 import Link from "next/link";
 import CategoryChips from "@/components/CategoryChips";
 import ListingCard from "@/components/ListingCard";
@@ -87,20 +88,7 @@ export default async function Home() {
                 </>
               ) : (
                 <div className="flex h-full items-center justify-center rounded-panel bg-primary-tint">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    aria-hidden="true"
-                    className="h-20 w-20 text-primary"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 9.75 12 3l9 6.75V21a.75.75 0 0 1-.75.75H15v-6.75H9v6.75H3.75A.75.75 0 0 1 3 21V9.75Z"
-                    />
-                  </svg>
+                  <Store className="h-20 w-20 text-primary" strokeWidth={1.5} aria-hidden="true" />
                 </div>
               )}
             </div>

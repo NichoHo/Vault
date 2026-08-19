@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const field =
-  "rounded-[6px] border border-sumi-20 px-3 py-2 text-sm outline-none focus:border-indigo";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 type State =
   | { step: "loading" }
@@ -62,12 +61,12 @@ export default function MfaManager() {
 
   switch (state.step) {
     case "loading":
-      return <p className="text-sm text-sumi-40">Loading…</p>;
+      return <p className="text-sm text-faint">Loading…</p>;
     case "signed_out":
       return (
-        <p className="text-sm text-sumi-60">
+        <p className="text-sm text-muted-foreground">
           You need to{" "}
-          <a href="/auth/start?next=/auth/mfa" className="text-indigo underline">
+          <a href="/auth/start?next=/auth/mfa" className="text-primary underline">
             sign in
           </a>{" "}
           first.
@@ -76,92 +75,83 @@ export default function MfaManager() {
     case "disabled":
       return (
         <div className="flex flex-col gap-3">
-          <p className="text-sm text-sumi-60">
+          <p className="text-sm text-muted-foreground">
             Two-factor authentication is <span className="font-medium text-ink">off</span>.
             Enable it to require a 6-digit code at every sign-in.
           </p>
           {error ? <p className="text-sm text-danger">{error}</p> : null}
-          <button
-            onClick={enroll}
-            className="rounded-[6px] bg-indigo px-3 py-2 text-sm font-medium text-on-solid"
-          >
-            Enable two-factor authentication
-          </button>
+          <Button onClick={enroll}>Enable two-factor authentication</Button>
         </div>
       );
     case "enrolling":
       return (
         <form onSubmit={activate} className="flex flex-col gap-3">
-          <p className="text-sm text-sumi-60">
+          <p className="text-sm text-muted-foreground">
             Add this key to your authenticator app (Google Authenticator, 1Password, …) using
             “enter a setup key”, then confirm with a code.
           </p>
-          <div className="rounded-[6px] bg-paper p-3">
-            <p className="text-xs text-sumi-40">Secret key</p>
-            <code className="break-all text-sm font-bold tracking-wider">{state.secret}</code>
+          <div className="rounded-control bg-fill p-3">
+            <p className="text-xs text-faint">Secret key</p>
+            <code className="break-all text-sm font-bold tracking-wider text-ink">
+              {state.secret}
+            </code>
           </div>
-          <details className="text-xs text-sumi-40">
+          <details className="text-xs text-faint">
             <summary className="cursor-pointer">otpauth:// URI</summary>
             <code className="break-all">{state.uri}</code>
           </details>
-          <input
+          <Input
             name="code"
             required
             autoComplete="one-time-code"
             inputMode="numeric"
             placeholder="123456"
-            className={`${field} text-center tracking-widest`}
+            className="text-center tracking-widest"
           />
           {error ? <p className="text-sm text-danger">{error}</p> : null}
-          <button className="rounded-[6px] bg-indigo px-3 py-2 text-sm font-medium text-on-solid">
-            Confirm & enable
-          </button>
+          <Button type="submit">Confirm & enable</Button>
         </form>
       );
     case "codes":
       return (
         <div className="flex flex-col gap-3">
-          <p className="rounded-[6px] bg-moss/10 px-3 py-2 text-sm text-moss">
+          <p className="rounded-control bg-success-tint px-3 py-2 text-sm text-success">
             Two-factor authentication is now on.
           </p>
-          <p className="text-sm text-sumi-60">
+          <p className="text-sm text-muted-foreground">
             Save these recovery codes somewhere safe. Each one works once if you lose your
             authenticator, and they will not be shown again.
           </p>
-          <div className="grid grid-cols-2 gap-2 rounded-[6px] bg-paper p-3">
+          <div className="grid grid-cols-2 gap-2 rounded-control bg-fill p-3">
             {state.codes.map((c) => (
-              <code key={c} className="text-sm">
+              <code key={c} className="text-sm text-ink">
                 {c}
               </code>
             ))}
           </div>
-          <button
-            onClick={() => setState({ step: "enabled" })}
-            className="rounded-[6px] border border-sumi-20 px-3 py-2 text-sm"
-          >
+          <Button variant="outline" onClick={() => setState({ step: "enabled" })}>
             I saved them
-          </button>
+          </Button>
         </div>
       );
     case "enabled":
       return (
         <form onSubmit={disable} className="flex flex-col gap-3">
-          <p className="text-sm">
-            Two-factor authentication is{" "}
-            <span className="font-medium text-moss">on</span>.
+          <p className="text-sm text-ink">
+            Two-factor authentication is <span className="font-medium text-success">on</span>.
           </p>
-          <p className="text-sm text-sumi-60">To turn it off, enter a current code:</p>
-          <input
+          <p className="text-sm text-muted-foreground">To turn it off, enter a current code:</p>
+          <Input
             name="code"
             required
             inputMode="numeric"
             placeholder="123456"
-            className={`${field} text-center tracking-widest`}
+            className="text-center tracking-widest"
           />
           {error ? <p className="text-sm text-danger">{error}</p> : null}
-          <button className="rounded-[6px] border border-danger px-3 py-2 text-sm text-danger">
+          <Button type="submit" variant="destructive">
             Disable two-factor authentication
-          </button>
+          </Button>
         </form>
       );
   }

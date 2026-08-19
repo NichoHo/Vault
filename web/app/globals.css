@@ -43,6 +43,7 @@
   --color-danger-tint: #fef2f2;
   --color-copilot: #7c3aed; /* AI listing-assistant hue, kept distinct from the brand */
   --color-copilot-tint: #f5f3ff;
+  --color-copilot-foreground: var(--color-on-solid);
 
   /* ---- Type ------------------------------------------------------------------ */
   --font-sans: var(--font-plus-jakarta), var(--font-noto), system-ui, sans-serif;

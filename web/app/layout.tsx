@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Inter, Noto_Sans_JP } from "next/font/google";
+import { Plus_Jakarta_Sans, Noto_Sans_JP } from "next/font/google";
 import Link from "next/link";
 import BackLink from "@/components/BackLink";
-import ThemeToggle from "@/components/ThemeToggle";
+import { Input } from "@/components/ui/input";
+import { buttonVariants } from "@/components/ui/button";
 import { getUser } from "@/lib/auth";
 import { ADMIN_EMAILS } from "@/lib/env";
 import "./globals.css";
 
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
+const plusJakarta = Plus_Jakarta_Sans({ variable: "--font-plus-jakarta", subsets: ["latin"] });
 const noto = Noto_Sans_JP({ variable: "--font-noto", subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -15,35 +16,27 @@ export const metadata: Metadata = {
   description: "C2C marketplace with self-built identity and escrow",
 };
 
-/* No `themeColor` viewport export: a media-query-based one would keep painting
-   the mobile browser chrome from the OS preference after the user overrides it.
-   `color-scheme` on <html> tracks the actual theme instead. */
-
 async function Header() {
   const user = await getUser();
-  const navLink = "text-muted transition-colors hover:text-ink";
+  const navLink = "text-muted-foreground transition-colors hover:text-ink";
   return (
     <header className="sticky top-0 z-30 border-b border-line glass">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" className="shrink-0 text-lg font-bold tracking-tight text-ink">
-          Vault<span className="text-accent">.</span>
+          Vault<span className="text-primary">.</span>
         </Link>
         <form action="/search" role="search" className="flex-1">
-          <input
+          <Input
             type="search"
             name="q"
             aria-label="Search listings"
             autoComplete="off"
             placeholder="Search listings…"
-            className="w-full max-w-md rounded-control border border-line bg-surface/80 px-3.5 py-2 text-sm text-ink outline-none transition-colors placeholder:text-faint focus:border-accent focus:bg-surface"
+            className="max-w-xl border-line bg-surface/80 focus-visible:bg-surface"
           />
         </form>
         <nav className="flex items-center gap-4 text-sm">
-          <ThemeToggle />
-          <Link
-            href="/sell"
-            className="rounded-control bg-accent px-3.5 py-2 font-semibold text-on-solid shadow-sm transition-colors hover:bg-accent-strong"
-          >
+          <Link href="/sell" className={buttonVariants({ className: "font-semibold" })}>
             Sell
           </Link>
           {user ? (
@@ -65,7 +58,7 @@ async function Header() {
               <Link
                 href="/auth/mfa"
                 title="Two-factor authentication"
-                className="text-accent transition-colors hover:text-ink"
+                className="text-primary transition-colors hover:text-ink"
               >
                 2FA
               </Link>
@@ -76,7 +69,7 @@ async function Header() {
           ) : (
             <a
               href="/auth/start"
-              className="font-medium text-accent transition-colors hover:text-ink"
+              className="font-medium text-primary transition-colors hover:text-ink"
             >
               Sign in
             </a>
@@ -93,20 +86,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${noto.variable} h-full antialiased`}
-      suppressHydrationWarning /* the script below writes data-theme pre-hydration */
-    >
-      <head>
-        {/* Runs while the HTML is parsed, before first paint, so the saved theme
-            applies without a flash of the wrong one. Falls back to the OS. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{document.documentElement.dataset.theme=localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light")}catch(e){}})()`,
-          }}
-        />
-      </head>
+    <html lang="en" className={`${plusJakarta.variable} ${noto.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-canvas font-sans">
         <a
           href="#main"

@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-
-const field =
-  "rounded-[6px] border border-sumi-20 px-3 py-2 text-sm outline-none focus:border-indigo";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function LoginForm({ returnTo }: { returnTo: string }) {
   const [error, setError] = useState("");
@@ -57,12 +56,12 @@ export default function LoginForm({ returnTo }: { returnTo: string }) {
   if (step !== "password") {
     return (
       <form onSubmit={submitCode} className="flex flex-col gap-3">
-        <p className="text-sm text-sumi-60">
+        <p className="text-sm text-muted-foreground">
           {step === "totp"
             ? "Enter the 6-digit code from your authenticator app."
             : "Enter one of your recovery codes."}
         </p>
-        <input
+        <Input
           name="code"
           required
           autoFocus
@@ -71,22 +70,18 @@ export default function LoginForm({ returnTo }: { returnTo: string }) {
           aria-label={step === "totp" ? "Authenticator code" : "Recovery code"}
           inputMode={step === "totp" ? "numeric" : "text"}
           placeholder={step === "totp" ? "123456" : "recovery code"}
-          className={`${field} text-center tracking-widest`}
+          className="text-center tracking-widest"
         />
         <p aria-live="polite" className="text-sm text-danger empty:hidden">
           {error}
         </p>
-        <button
-          type="submit"
-          disabled={busy}
-          className="rounded-[6px] bg-indigo px-3 py-2 text-sm font-medium text-on-solid disabled:opacity-50"
-        >
+        <Button type="submit" disabled={busy}>
           {busy ? "Verifying…" : "Verify"}
-        </button>
+        </Button>
         <button
           type="button"
           onClick={() => setStep(step === "totp" ? "recovery" : "totp")}
-          className="text-sm text-indigo underline"
+          className="text-sm text-primary underline"
         >
           {step === "totp" ? "Use a recovery code instead" : "Use authenticator code"}
         </button>
@@ -96,7 +91,7 @@ export default function LoginForm({ returnTo }: { returnTo: string }) {
 
   return (
     <form onSubmit={submitPassword} className="flex flex-col gap-3">
-      <input
+      <Input
         name="email"
         type="email"
         required
@@ -104,32 +99,26 @@ export default function LoginForm({ returnTo }: { returnTo: string }) {
         spellCheck={false}
         aria-label="Email"
         placeholder="Email"
-        className={field}
       />
-      <input
+      <Input
         name="password"
         type="password"
         required
         autoComplete="current-password"
         aria-label="Password"
         placeholder="Password"
-        className={field}
       />
       <p aria-live="polite" className="text-sm text-danger empty:hidden">
         {error}
       </p>
-      <button
-        type="submit"
-        disabled={busy}
-        className="rounded-[6px] bg-indigo px-3 py-2 text-sm font-medium text-on-solid disabled:opacity-50"
-      >
+      <Button type="submit" disabled={busy}>
         {busy ? "Signing in…" : "Sign in"}
-      </button>
-      <p className="text-center text-sm text-sumi-60">
+      </Button>
+      <p className="text-center text-sm text-muted-foreground">
         No account?{" "}
         <Link
           href={`/auth/register?return_to=${encodeURIComponent(returnTo)}`}
-          className="text-indigo underline"
+          className="text-primary underline"
         >
           Register
         </Link>

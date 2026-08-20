@@ -67,7 +67,7 @@ func main() {
 	_, err = pool.Exec(ctx,
 		`INSERT INTO id.oauth_clients (id, name, redirect_uris) VALUES ('vault-web', 'Vault Storefront', $1)
 		 ON CONFLICT (id) DO UPDATE SET redirect_uris = $1`,
-		[]string{env("WEB_CALLBACK", "http://localhost:3000/auth/callback")})
+		[]string{env("WEB_CALLBACK", "http://localhost:3001/auth/callback")})
 	must(err)
 
 	userIDs := map[string]string{}

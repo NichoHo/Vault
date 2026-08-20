@@ -14,5 +14,5 @@ output "public_ip" {
 
 output "web_url" {
   description = "URL to access the Vault web app"
-  value       = "http://${aws_instance.vault.public_dns}:3000"
+  value       = "http://${aws_instance.vault.public_dns}:3001"
 }

@@ -64,6 +64,15 @@ resource "aws_instance" "vault" {
     git clone ${var.repo_url} vault
     chown -R ec2-user:ec2-user vault
     cd vault
+
+    # WEB_URL/WEB_ORIGIN are sent to the browser for redirects and origin
+    # checks, so they must resolve to this instance's public IP, not
+    # localhost. EC2's metadata service can tell us that directly.
+    TOKEN=$(curl -sX PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 60")
+    PUBLIC_IP=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/public-ipv4)
+    echo "PUBLIC_HOST=$PUBLIC_IP" > .env
+    chown ec2-user:ec2-user .env
+
     docker compose up -d
   EOF
 

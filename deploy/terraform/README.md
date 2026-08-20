@@ -17,7 +17,7 @@ terraform init
 terraform apply -var="key_name=YOUR_KEY_PAIR_NAME"
 ```
 
-Terraform will output the instance's **public IP**, **DNS**, and a ready-to-click **web URL** on port 3000.
+Terraform will output the instance's **public IP**, **DNS**, and a ready-to-click **web URL** on port 3001.
 
 ## Cost
 

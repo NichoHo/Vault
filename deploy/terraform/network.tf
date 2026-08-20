@@ -45,8 +45,8 @@ resource "aws_vpc_security_group_ingress_rule" "https" {
 resource "aws_vpc_security_group_ingress_rule" "app" {
   security_group_id = aws_security_group.vault.id
   description       = "Next.js app"
-  from_port         = 3000
-  to_port           = 3000
+  from_port         = 3001
+  to_port           = 3001
   ip_protocol       = "tcp"
   cidr_ipv4         = "0.0.0.0/0"
 }
